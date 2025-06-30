@@ -1,6 +1,6 @@
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-import StartingPage from '../../StartingPage';
-import ResultPage from '../../Resultpage';
+import { HashRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import StartingPage from './StartingPage';
+import ResultPage from './Resultpage';
 import EnergyPage from './EnergyPage';
 import FoodPage from './FoodPage';
 import TransportPage from './TransportPage';
