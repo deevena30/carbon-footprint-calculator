@@ -1,0 +1,95 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+body {
+  margin: 0;
+  font-family: 'Poppins', Arial, sans-serif;
+  background: url('/iitbombay 1.png') no-repeat center center fixed;
+  background-size: cover;
+  min-height: 100vh;
+}
+
+.bg-overlay {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 24px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  padding: 48px 32px;
+  margin: 48px auto;
+  max-width: 900px;
+}
+
+.logo-small {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  width: 60px;
+  height: 60px;
+  z-index: 10;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.bg-overlay h2 {
+  margin-top: 48px;
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+@media (max-width: 700px) {
+  .bg-overlay {
+    padding: 16px 4px;
+    margin: 8px auto;
+    max-width: 98vw;
+  }
+  .logo-small {
+    width: 40px;
+    height: 40px;
+    top: 8px;
+    left: 8px;
+  }
+  .bg-overlay h2 {
+    margin-top: 24px;
+    margin-bottom: 24px;
+  }
+}

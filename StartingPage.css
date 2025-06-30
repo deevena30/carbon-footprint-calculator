@@ -1,0 +1,4 @@
+.starting-page {
+  background-image: url('../assets/iitbombay.png'); /* Update with correct path */
+  backdrop-filter: blur(2px);
+}
