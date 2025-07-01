@@ -77,10 +77,30 @@ body {
 }
 
 @media (max-width: 700px) {
+  html, body {
+    height: 100vh;
+    min-height: 100vh;
+    width: 100vw;
+    min-width: 100vw;
+    background: url('/iitbombay 1.png') no-repeat center center fixed !important;
+    background-size: cover !important;
+    overflow-x: hidden;
+  }
+  body, #root, #root > div {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 100vh;
+    width: 100vw;
+  }
   .bg-overlay {
-    padding: 16px 4px;
-    margin: 8px auto;
-    max-width: 98vw;
+    width: 96vw;
+    max-width: 420px;
+    max-height: 92vh;
+    margin: 4vh auto;
+    padding: 12px 2vw;
+    overflow-y: auto;
+    box-sizing: border-box;
   }
   .logo-small {
     width: 40px;
@@ -89,7 +109,7 @@ body {
     left: 8px;
   }
   .bg-overlay h2 {
-    margin-top: 24px;
-    margin-bottom: 24px;
+    margin-top: 18px;
+    margin-bottom: 18px;
   }
 }
