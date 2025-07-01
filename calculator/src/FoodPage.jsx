@@ -84,7 +84,7 @@ export default function FoodPage({ onNext }) {
             <option value="Red Meat Diet">Red Meat Diet</option>
           </select>
           <div style={{ width: '100%', maxWidth: 500 }}>
-            <StyledSlider label="Food Orders/Week" min={0} max={50} value={form.foodOrders} onChange={handleChange} name="foodOrders" valueLabel={form.foodOrders + ' orders'} />
+            <StyledSlider label="Food Orders/Week" min={0} max={21} value={form.foodOrders} onChange={handleChange} name="foodOrders" valueLabel={form.foodOrders + ' orders'} />
           </div>
           <button
             type="submit"

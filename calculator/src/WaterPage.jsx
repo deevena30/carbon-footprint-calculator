@@ -25,6 +25,26 @@ function StyledSlider({ label, min, max, value, onChange, name, valueLabel }) {
   );
 }
 
+function OptionButtonGroup({ label, name, value, onChange, options }) {
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8 }}>{label}</div>
+      <div className="option-group">
+        {options.map(opt => (
+          <button
+            type="button"
+            key={opt.value}
+            className={`option-btn${value === opt.value ? ' selected' : ''}`}
+            onClick={() => onChange({ target: { name, value: opt.value } })}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function WaterPage({ onNext }) {
   const [form, setForm] = useState({
     showers: 0,
@@ -36,6 +56,7 @@ export default function WaterPage({ onNext }) {
     const { name, value } = e.target;
     setForm({ ...form, [name]: Number(value) });
   };
+  const handleOption = e => setForm({ ...form, [e.target.name]: Number(e.target.value) });
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -50,8 +71,8 @@ export default function WaterPage({ onNext }) {
         <h2 style={{ fontSize: 36, fontWeight: 700, marginTop: 24, marginBottom: 32, textAlign: 'center' }}>Water</h2>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
           <div style={{ width: '100%', maxWidth: 500 }}>
-            <StyledSlider label="Showers/Week" min={0} max={21} value={form.showers} onChange={handleSlider} name="showers" valueLabel={form.showers + ' showers'} />
-            <StyledSlider label="Bath Duration (minutes)" min={1} max={60} value={form.bathDuration} onChange={handleSlider} name="bathDuration" valueLabel={form.bathDuration + ' min'} />
+            <OptionButtonGroup label="Showers/Week" name="showers" value={form.showers} onChange={handleOption} options={[{label:'0',value:0},{label:'1–5',value:3},{label:'6–10',value:8},{label:'11+',value:13}]} />
+            <StyledSlider label="Bath Duration (minutes)" min={1} max={45} value={form.bathDuration} onChange={handleSlider} name="bathDuration" valueLabel={form.bathDuration + ' min'} />
           </div>
           <button
             type="submit"

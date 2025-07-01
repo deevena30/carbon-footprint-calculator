@@ -5,22 +5,22 @@ import logo from './assets/logo.png';
 const GREEN = '#BDD873';
 const GREEN_DARK = '#8BC34A';
 
-function StyledSlider({ label, min, max, value, onChange, name, valueLabel }) {
+function OptionButtonGroup({ label, name, value, onChange, options }) {
   return (
-    <div style={{ marginBottom: 32 }}>
+    <div style={{ marginBottom: 24 }}>
       <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8 }}>{label}</div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 0 }}>
-        <input
-          type="range"
-          min={min}
-          max={max}
-          value={value}
-          name={name}
-          onChange={onChange}
-          style={{ flex: 1, margin: '0 16px', accentColor: GREEN_DARK }}
-        />
+      <div className="option-group">
+        {options.map(opt => (
+          <button
+            type="button"
+            key={opt.value}
+            className={`option-btn${value === opt.value ? ' selected' : ''}`}
+            onClick={() => onChange({ target: { name, value: opt.value } })}
+          >
+            {opt.label}
+          </button>
+        ))}
       </div>
-      <div style={{ textAlign: 'center', fontWeight: 700, fontSize: 20, marginTop: 4, fontStyle: 'italic' }}>{valueLabel || value}</div>
     </div>
   );
 }
@@ -41,6 +41,7 @@ export default function TransportPage({ onNext }) {
     const { name, value } = e.target;
     setForm({ ...form, [name]: ['outingsMonth','eatOutMonth','partyingMonth','shoppingMonth','autoRides','ecommerce'].includes(name) ? Number(value) : value });
   };
+  const handleOption = e => setForm({ ...form, [e.target.name]: Number(e.target.value) });
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -96,12 +97,11 @@ export default function TransportPage({ onNext }) {
             <option value="Sea-ferry+local">Sea-ferry+local</option>
           </select>
           <div style={{ width: '100%', maxWidth: 500 }}>
-            <StyledSlider label="Outings/Month" min={0} max={31} value={form.outingsMonth} onChange={handleChange} name="outingsMonth" valueLabel={form.outingsMonth + ' outings'} />
-            <StyledSlider label="Eating Out/Month" min={0} max={31} value={form.eatOutMonth} onChange={handleChange} name="eatOutMonth" valueLabel={form.eatOutMonth + ' times'} />
-            <StyledSlider label="Partying/Clubbing/Month" min={0} max={31} value={form.partyingMonth} onChange={handleChange} name="partyingMonth" valueLabel={form.partyingMonth + ' times'} />
-            <StyledSlider label="Shopping Trips/Month" min={0} max={31} value={form.shoppingMonth} onChange={handleChange} name="shoppingMonth" valueLabel={form.shoppingMonth + ' trips'} />
-            <StyledSlider label="Auto Rickshaw Rides/Day" min={0} max={50} value={form.autoRides} onChange={handleChange} name="autoRides" valueLabel={form.autoRides + ' rides'} />
-            <StyledSlider label="E-commerce Orders/Month" min={0} max={100} value={form.ecommerce} onChange={handleChange} name="ecommerce" valueLabel={form.ecommerce + ' orders'} />
+            <OptionButtonGroup label="Outings/Month" name="outingsMonth" value={form.outingsMonth} onChange={handleOption} options={[{label:'0',value:0},{label:'1–3',value:2},{label:'4–6',value:5},{label:'7+',value:8}]} />
+            <OptionButtonGroup label="Eating Out/Month" name="eatOutMonth" value={form.eatOutMonth} onChange={handleOption} options={[{label:'0',value:0},{label:'1–3',value:2},{label:'4–6',value:5},{label:'7+',value:8}]} />
+            <OptionButtonGroup label="Partying/Clubbing/Month" name="partyingMonth" value={form.partyingMonth} onChange={handleOption} options={[{label:'0',value:0},{label:'1–3',value:2},{label:'4–6',value:5},{label:'7+',value:8}]} />
+            <OptionButtonGroup label="Shopping Trips/Month" name="shoppingMonth" value={form.shoppingMonth} onChange={handleOption} options={[{label:'0',value:0},{label:'1–3',value:2},{label:'4–6',value:5},{label:'7+',value:8}]} />
+            <OptionButtonGroup label="Auto Rickshaw Rides/Day" name="autoRides" value={form.autoRides} onChange={handleOption} options={[{label:'0',value:0},{label:'1–3',value:2},{label:'4–6',value:5},{label:'7+',value:8}]} />
           </div>
           <button
             type="submit"

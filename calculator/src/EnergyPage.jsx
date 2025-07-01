@@ -70,6 +70,26 @@ function StyledSlider({ label, min, max, value, onChange, name, valueLabel }) {
   );
 }
 
+function OptionButtonGroup({ label, name, value, onChange, options }) {
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8 }}>{label}</div>
+      <div className="option-group">
+        {options.map(opt => (
+          <button
+            type="button"
+            key={opt.value}
+            className={`option-btn${value === opt.value ? ' selected' : ''}`}
+            onClick={() => onChange({ target: { name, value: opt.value } })}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function EnergyPage({ onNext }) {
   const [form, setForm] = useState({
     hostelNo: 1,
@@ -82,6 +102,7 @@ export default function EnergyPage({ onNext }) {
 
   const handleSlider = e => setForm({ ...form, [e.target.name]: Number(e.target.value) });
   const handleHostel = num => setForm({ ...form, hostelNo: num });
+  const handleOption = e => setForm({ ...form, [e.target.name]: Number(e.target.value) });
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -97,10 +118,10 @@ export default function EnergyPage({ onNext }) {
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8 }}>In which hostel do you live?</div>
           <HostelSelector value={form.hostelNo} onChange={handleHostel} />
-          <StyledSlider label="Credits taken" min={0} max={100} value={form.credits} onChange={handleSlider} name="credits" valueLabel={form.credits + ' credits'} />
-          <StyledSlider label="Time in Labs (hours/week)" min={0} max={168} value={form.timeLabs} onChange={handleSlider} name="timeLabs" />
-          <StyledSlider label="Time in Library (hours/week)" min={0} max={168} value={form.timeLibrary} onChange={handleSlider} name="timeLibrary" />
-          <StyledSlider label="Time in Gymkhana (hours/week)" min={0} max={168} value={form.timeGymkhana} onChange={handleSlider} name="timeGymkhana" />
+          <StyledSlider label="Credits taken" min={0} max={54} value={form.credits} onChange={handleSlider} name="credits" valueLabel={form.credits + ' credits'} />
+          <OptionButtonGroup label="Time in Labs (hours/week)" name="timeLabs" value={form.timeLabs} onChange={handleOption} options={[{label:'0',value:0},{label:'1–5',value:3},{label:'6–10',value:8},{label:'11+',value:13}]} />
+          <OptionButtonGroup label="Time in Library (hours/week)" name="timeLibrary" value={form.timeLibrary} onChange={handleOption} options={[{label:'0',value:0},{label:'1–5',value:3},{label:'6–10',value:8},{label:'11+',value:13}]} />
+          <OptionButtonGroup label="Time in Gymkhana (hours/week)" name="timeGymkhana" value={form.timeGymkhana} onChange={handleOption} options={[{label:'0',value:0},{label:'1–5',value:3},{label:'6–10',value:8},{label:'11+',value:13}]} />
           <button
             type="submit"
             style={{
