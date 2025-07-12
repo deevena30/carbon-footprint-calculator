@@ -58,19 +58,19 @@ body {
   width: 100%;
   max-width: 800px;
   min-width: 600px;
+  padding-top: 32px; /* Add extra top padding for logo */
 }
 
 .logo-small {
-  position: absolute;
-  top: 24px;
-  left: 24px;
+  /* Remove position: absolute, top, left, z-index, etc. */
   width: 64px;
   height: 64px;
-  z-index: 10;
   border-radius: 0;
   background: none;
   box-shadow: none;
   object-fit: contain;
+  margin-bottom: 16px;
+  display: block;
 }
 
 .bg-overlay h2 {
@@ -102,16 +102,15 @@ body {
     min-width: unset;
     max-height: 92vh;
     margin: 4vh auto;
-    padding: 12px 2vw;
+    padding: 32px 2vw 12px 2vw; /* Add top padding for logo */
     overflow-y: auto;
     box-sizing: border-box;
   }
   .logo-small {
     width: 64px;
     height: 64px;
-    top: 16px;
-    left: 16px;
-    object-fit: contain;
+    margin-bottom: 12px;
+    display: block;
   }
   .bg-overlay h2 {
     margin-top: 18px;

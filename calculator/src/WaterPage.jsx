@@ -75,8 +75,8 @@ export default function WaterPage({ onNext, formData }) {
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
-      <img src={logo} alt="Logo" className="logo-small" />
       <div className="bg-overlay">
+        <img src={logo} alt="Logo" className="logo-small" />
         <h2 style={{ fontSize: 36, fontWeight: 700, marginTop: 24, marginBottom: 32, textAlign: 'center' }}>Water</h2>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0 }}>
           <div style={{ width: '100%', maxWidth: 600 }}>

@@ -420,8 +420,8 @@ function ResultPage({ formData, onReset }) {
   const recommendations = generateRecommendations(formData, results);
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
-      <img src={logo} alt="Logo" className="logo-small" />
       <div className="bg-overlay" style={{ borderRadius: 32, background: 'rgba(255,255,255,0.97)', boxShadow: '0 8px 32px rgba(139,195,74,0.10)' }}>
+        <img src={logo} alt="Logo" className="logo-small" />
         {/* Green Score Highlight */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 32 }}>
           <div style={{ fontSize: 20, fontWeight: 600, color: GREEN_DARK, marginBottom: 8 }}>Your Green Score</div>

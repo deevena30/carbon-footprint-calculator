@@ -122,8 +122,8 @@ export default function EnergyPage({ onNext, formData }) {
 
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
-      <img src={logo} alt="Logo" className="logo-small" />
       <div className="bg-overlay">
+        <img src={logo} alt="Logo" className="logo-small" />
         <h2 style={{ fontSize: 36, fontWeight: 700, marginTop: 24, marginBottom: 32, textAlign: 'center' }}>Energy</h2>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8 }}>In which hostel do you live?</div>
