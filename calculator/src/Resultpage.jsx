@@ -49,9 +49,12 @@ function normalize(value, min, max, newMin, newMax) {
 
 function scoreFromValue(value, min, max) {
   // Higher value = lower score, so invert
+  if (max === min) {
+    return 5.0; // Return middle score if min and max are the same
+  }
   const normalized = (value - min) / (max - min);
   const score = 10 - normalized * 9; // 10 (best) to 1 (worst)
-  return Math.max(1, Math.min(10, score.toFixed(2)));
+  return Math.max(1, Math.min(10, parseFloat(score.toFixed(2))));
 }
 
 function calculateResults(inputs) {
@@ -112,7 +115,7 @@ function calculateResults(inputs) {
       'Vegan': 158.942,
       'Vegetarian': 112.862,
       'Pescatarian': 470.637,
-      'Egetarian': 158.812,
+      'Eggetarian': 158.812,
       'White Meat Diet': 486.237,
       'Red Meat Diet': 494.167
     }
@@ -126,22 +129,24 @@ function calculateResults(inputs) {
   const s = ((0.82 * elec) + 0.3);
 
   // Water usage
-  const totalwatertodrink = 35;
-  const flowrate  = 6;
+  const totalwatertodrink = 3; // 3 liters per day for drinking
+  const flowrate = 8; // 8 liters per minute for shower
   const actualshoweron = 0.7;
-  const totalwatertoshower = flowrate * nBathDuration * actualshoweron * nShowers;
+  const totalwatertoshower = (flowrate * nBathDuration * actualshoweron * nShowers) / 7; // Convert weekly to daily
   const noofflush = 7;
-  const wateramount = 40;
+  const wateramount = 6; // 6 liters per flush (more realistic)
   const totalwatertoflush = noofflush * wateramount;
-  const veganWater = 1000, vegetarianWater = 1200, pescatarianWater = 1300, egetarianWater = 1400, whiteMeatDietWater = 1500, redMeatDietWater = 1600;
-  const totalwatertoeat = 7 * (
+  
+  // More realistic water footprint for food production (liters per day)
+  const veganWater = 60, vegetarianWater = 70, pescatarianWater = 80, egetarianWater = 75, whiteMeatDietWater = 90, redMeatDietWater = 100;
+  const totalwatertoeat = (
     dietType === "Vegan" ? veganWater : 
     dietType === "Vegetarian" ? vegetarianWater :
     dietType === "Pescatarian" ? pescatarianWater : 
-    dietType === "Egetarian" ? egetarianWater : 
+    dietType === "Eggetarian" ? egetarianWater : 
     dietType === "White Meat Diet" ? whiteMeatDietWater : 
     dietType === "Red Meat Diet" ? redMeatDietWater : 
-    0
+    60
   );
   const waterusage = totalwatertodrink + totalwatertoshower + totalwatertoflush + totalwatertoeat;
 
@@ -163,7 +168,7 @@ function calculateResults(inputs) {
       dietType === "Vegan" ? vegan :
       dietType === "Vegetarian" ? vegetarian :
       dietType === "Pescatarian" ? pescatarian :
-      dietType === "Egetarian" ? egetarian :
+      dietType === "Eggetarian" ? egetarian :
       dietType === "White Meat Diet" ? whiteMeatDiet :
       dietType === "Red Meat Diet" ? redMeatDiet :
       0
@@ -176,7 +181,7 @@ function calculateResults(inputs) {
     dietType === "Vegan" ? vegan :
     dietType === "Vegetarian" ? vegetarian :
     dietType === "Pescatarian" ? pescatarian :
-    dietType === "Egetarian" ? egetarian :
+    dietType === "Eggetarian" ? egetarian :
     dietType === "White Meat Diet" ? whiteMeatDiet :
     dietType === "Red Meat Diet" ? redMeatDiet :
     0
@@ -186,25 +191,31 @@ function calculateResults(inputs) {
     dietType === "Vegan" ? vegan :
     dietType === "Vegetarian" ? vegetarian :
     dietType === "Pescatarian" ? pescatarian :
-    dietType === "Egetarian" ? egetarian :
+    dietType === "Eggetarian" ? egetarian :
     dietType === "White Meat Diet" ? whiteMeatDiet :
     dietType === "Red Meat Diet" ? redMeatDiet :
     0
   )) + 470);
 
   // Normalization for water and waste using observed ranges
-  // Water: 6000-20000 L/day -> 200-700 L/day
+  // Water: 25-150 L/day -> 25-150 L/day (no normalization needed, already realistic)
   // Waste: 100-600 kg/day -> 1-10 kg/day
   const rawWater = waterusage;
   const rawWaste = wasteg;
-  const water = normalize(rawWater, 6000, 20000, 200, 700).toFixed(2);
+  const water = rawWater.toFixed(2); // No normalization needed, already in reasonable range
   const waste = normalize(rawWaste, 100, 600, 1, 10).toFixed(2);
 
   // Scores (higher is better)
   const carbonScore = scoreFromValue(totalCarbon, 500, 1500);
-  const waterScore = scoreFromValue(rawWater, 6000, 20000);
+  const waterScore = scoreFromValue(rawWater, 50, 600); // Updated range for water score calculation
   const wasteScore = scoreFromValue(rawWaste, 100, 600);
-  const greenScore = ((parseFloat(carbonScore) + parseFloat(waterScore) + parseFloat(wasteScore)) / 3).toFixed(2);
+  
+  // Ensure all scores are valid numbers before calculating green score
+  const carbonScoreNum = parseFloat(carbonScore) || 5.0;
+  const waterScoreNum = parseFloat(waterScore) || 5.0;
+  const wasteScoreNum = parseFloat(wasteScore) || 5.0;
+  
+  const greenScore = ((carbonScoreNum + waterScoreNum + wasteScoreNum) / 3).toFixed(2);
 
   return {
     electricity,
@@ -219,6 +230,162 @@ function calculateResults(inputs) {
     wasteScore,
     greenScore
   };
+}
+
+function generateRecommendations(formData, results) {
+  const recommendations = [];
+  const greenScore = parseFloat(results.greenScore);
+  
+  // Energy recommendations (College-focused)
+  if (formData.timeLabs > 8) {
+    recommendations.push({
+      category: "Energy", 
+      icon: "🔬",
+      title: "Lab Sustainability Practices",
+      description: "Turn off lab equipment when not in use, coordinate with lab partners to share resources, and report any energy waste to lab supervisors."
+    });
+  }
+  
+  if (formData.timeLibrary > 8) {
+    recommendations.push({
+      category: "Energy",
+      icon: "📚",
+      title: "Study Space Efficiency",
+      description: "Use natural lighting when possible, turn off lights in empty study rooms, and consider studying in groups to reduce overall energy usage."
+    });
+  }
+  
+  // Food recommendations (College-focused)
+  if (formData.foodOrders > 10) {
+    recommendations.push({
+      category: "Food",
+      icon: "🍽️",
+      title: "Hostel Mess & Campus Dining",
+      description: "Make better use of your hostel mess facilities. They're often more economical and generate less packaging waste than food delivery."
+    });
+  }
+  
+  // Transport recommendations (College-focused)
+  if (formData.outingsMonth > 5) {
+    recommendations.push({
+      category: "Transport",
+      icon: "🚗",
+      title: "Campus Outing Optimization",
+      description: "Plan your outings with friends to share cabs, use campus shuttle services when available, and combine multiple errands into single trips."
+    });
+  }
+  
+  if (formData.autoRides > 2) {
+    recommendations.push({
+      category: "Transport",
+      icon: "🛺",
+      title: "Campus Transportation",
+      description: "Use campus shuttle services, walk between nearby buildings, or cycle around campus."
+    });
+  }
+  
+  if (formData.ecommerce > 2) {
+    recommendations.push({
+      category: "Transport",
+      icon: "📦",
+      title: "Smart Shopping Habits",
+      description: "Coordinate online orders with roommates to reduce delivery trips."
+    });
+  }
+  
+  // Water recommendations (College-focused)
+  if (formData.showers > 8) {
+    recommendations.push({
+      category: "Water",
+      icon: "🚿",
+      title: "Hostel Water Conservation",
+      description: "Coordinate shower schedules with roommates, report any water leaks to hostel maintenance, and consider using a bucket bath."
+    });
+  }
+  
+  if (formData.bathDuration > 20) {
+    recommendations.push({
+      category: "Water",
+      icon: "⏱️",
+      title: "Efficient Bathing",
+      description: "Set a timer for your showers, use the hostel's water-efficient facilities, and consider bucket baths which use significantly less water."
+    });
+  }
+  
+  // Score-based recommendations (College-focused)
+  if (greenScore < 5) {
+    recommendations.push({
+      category: "General",
+      icon: "📚",
+      title: "Environmental Education",
+      description: "Take advantage of environmental courses offered by your college, attend sustainability workshops, and learn about campus green initiatives."
+    });
+  }
+  
+  // Always ensure minimum 3 recommendations
+  const baseRecommendations = [
+    {
+      category: "General",
+      icon: "💡",
+      title: "Energy Awareness",
+      description: "Turn off lights and fans when leaving your room, unplug chargers when not in use, and use natural ventilation when possible."
+    },
+    {
+      category: "General", 
+      icon: "♻️",
+      title: "Waste Management",
+      description: "Use the hostel's recycling bins, avoid single-use plastics, and participate in campus waste segregation programs."
+    },
+    {
+      category: "General",
+      icon: "🚶",
+      title: "Active Transportation",
+      description: "Walk or cycle to nearby campus locations, use stairs instead of elevators, and encourage friends to join you for active commuting."
+    }
+  ];
+  
+  // If we have less than 3 recommendations, add from base recommendations
+  if (recommendations.length < 3) {
+    const needed = 3 - recommendations.length;
+    recommendations.push(...baseRecommendations.slice(0, needed));
+  }
+  
+  // Limit to maximum 6 recommendations
+  return recommendations.slice(0, 6);
+}
+
+function RecommendationCard({ recommendation }) {
+  return (
+    <div style={{
+      background: '#f8fff8',
+      border: '1px solid rgba(139, 195, 74, 0.2)',
+      borderRadius: 16,
+      padding: '20px',
+      marginBottom: 16,
+      boxShadow: '0 2px 8px rgba(139,195,74,0.06)'
+    }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+        <div style={{ fontSize: 24, marginTop: 2 }}>{recommendation.icon}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ 
+            fontSize: 16, 
+            fontWeight: 700, 
+            color: '#4CAF50', 
+            marginBottom: 4 
+          }}>
+            {recommendation.title}
+          </div>
+          <div style={{ 
+            fontSize: 14, 
+            color: '#666', 
+            lineHeight: 1.5 
+          }}>
+            {recommendation.description}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 const GREEN = '#BDD873';
@@ -247,13 +414,14 @@ function ScorePill({ label, value, color, icon }) {
   );
 }
 
-function ResultPage({ formData }) {
+function ResultPage({ formData, onReset }) {
   const results = calculateResults(formData);
   const navigate = useNavigate();
+  const recommendations = generateRecommendations(formData, results);
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
-      <img src={logo} alt="Logo" className="logo-small" style={{ borderRadius: 0, background: 'none', boxShadow: 'none', position: 'absolute', top: 24, left: 24, width: 64 }} />
-      <div className="bg-overlay" style={{ maxWidth: 800, margin: '48px auto', padding: '48px 32px', borderRadius: 32, background: 'rgba(255,255,255,0.97)', boxShadow: '0 8px 32px rgba(139,195,74,0.10)' }}>
+      <img src={logo} alt="Logo" className="logo-small" />
+      <div className="bg-overlay" style={{ borderRadius: 32, background: 'rgba(255,255,255,0.97)', boxShadow: '0 8px 32px rgba(139,195,74,0.10)' }}>
         {/* Green Score Highlight */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 32 }}>
           <div style={{ fontSize: 20, fontWeight: 600, color: GREEN_DARK, marginBottom: 8 }}>Your Green Score</div>
@@ -303,6 +471,13 @@ function ResultPage({ formData }) {
             </table>
           </div>
         </div>
+        {/* Recommendations Section */}
+        <div style={{ marginTop: 32, marginBottom: 32 }}>
+          <div style={{ fontSize: 22, fontWeight: 700, color: GREEN_DARK, marginBottom: 12 }}>Personalized Recommendations</div>
+          {recommendations.map((recommendation, index) => (
+            <RecommendationCard key={index} recommendation={recommendation} />
+          ))}
+        </div>
         <div style={{ fontSize: 16, color: '#666', marginTop: 24, textAlign: 'center' }}>
           <b>What does this mean?</b> The Green Score is an average of your Carbon, Water, and Waste scores. Higher is better! Each score is based on your daily habits and resource usage.
         </div>
@@ -315,12 +490,11 @@ function ResultPage({ formData }) {
               color: '#fff',
               border: 'none',
               fontWeight: 700,
-              fontSize: 22,
+              fontSize: 18,
               boxShadow: '0 4px 16px rgba(139,195,74,0.15)',
-              padding: '16px 0',
+              padding: '12px 24px',
               borderRadius: 999,
               letterSpacing: 1,
-              width: 300,
               cursor: 'pointer',
               transition: 'background 0.2s',
             }}

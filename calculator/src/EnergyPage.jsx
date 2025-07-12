@@ -3,21 +3,27 @@ import { useNavigate } from 'react-router-dom';
 import logo from './assets/logo.png';
 
 const HOSTEL_MIN = 1;
-const HOSTEL_MAX = 18;
-const HOSTELS_PER_PAGE = 5;
+const HOSTEL_MAX = 21;
+const HOSTELS_PER_PAGE = 7; // Increased from 5 to show more hostels at once
 const GREEN = '#BDD873';
 const GREEN_DARK = '#8BC34A';
 
 function HostelSelector({ value, onChange }) {
   const [start, setStart] = useState(1);
-  const end = Math.min(start + HOSTELS_PER_PAGE - 1, HOSTEL_MAX);
+  
+  // Responsive hostel display - more on desktop, fewer on mobile
+  const isMobile = window.innerWidth <= 700;
+  const hostelsPerPage = isMobile ? 5 : HOSTELS_PER_PAGE;
+  
+  const end = Math.min(start + hostelsPerPage - 1, HOSTEL_MAX);
   const canPrev = start > HOSTEL_MIN;
   const canNext = end < HOSTEL_MAX;
   const hostels = [];
   for (let i = start; i <= end; i++) hostels.push(i);
+  
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24, justifyContent: 'center' }}>
-      <button type="button" onClick={() => setStart(Math.max(HOSTEL_MIN, start - HOSTELS_PER_PAGE))} disabled={!canPrev} style={{ background: 'none', border: 'none', fontSize: 28, color: canPrev ? GREEN_DARK : '#ccc', cursor: canPrev ? 'pointer' : 'default' }}>&lt;</button>
+      <button type="button" onClick={() => setStart(Math.max(HOSTEL_MIN, start - hostelsPerPage))} disabled={!canPrev} style={{ background: 'none', border: 'none', fontSize: 28, color: canPrev ? GREEN_DARK : '#ccc', cursor: canPrev ? 'pointer' : 'default' }}>&lt;</button>
       {hostels.map(num => (
         <button
           key={num}
@@ -45,7 +51,7 @@ function HostelSelector({ value, onChange }) {
           {num}
         </button>
       ))}
-      <button type="button" onClick={() => setStart(Math.min(HOSTEL_MAX - HOSTELS_PER_PAGE + 1, start + HOSTELS_PER_PAGE))} disabled={!canNext} style={{ background: 'none', border: 'none', fontSize: 28, color: canNext ? GREEN_DARK : '#ccc', cursor: canNext ? 'pointer' : 'default' }}>&gt;</button>
+      <button type="button" onClick={() => setStart(Math.min(HOSTEL_MAX - hostelsPerPage + 1, start + hostelsPerPage))} disabled={!canNext} style={{ background: 'none', border: 'none', fontSize: 28, color: canNext ? GREEN_DARK : '#ccc', cursor: canNext ? 'pointer' : 'default' }}>&gt;</button>
     </div>
   );
 }
@@ -90,13 +96,13 @@ function OptionButtonGroup({ label, name, value, onChange, options }) {
   );
 }
 
-export default function EnergyPage({ onNext }) {
+export default function EnergyPage({ onNext, formData }) {
   const [form, setForm] = useState({
-    hostelNo: 1,
-    credits: 0,
-    timeLabs: 0,
-    timeLibrary: 0,
-    timeGymkhana: 0
+    hostelNo: formData.hostelNo || 1,
+    credits: formData.credits || 0,
+    timeLabs: formData.timeLabs || 0,
+    timeLibrary: formData.timeLibrary || 0,
+    timeGymkhana: formData.timeGymkhana || 0
   });
   const navigate = useNavigate();
 
@@ -110,10 +116,14 @@ export default function EnergyPage({ onNext }) {
     navigate('/food');
   };
 
+  const handleBack = () => {
+    navigate('/');
+  };
+
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
-      <img src={logo} alt="Logo" className="logo-small" style={{ borderRadius: 0, background: 'none', boxShadow: 'none' }} />
-      <div className="bg-overlay" style={{ maxWidth: 420, margin: '48px auto', padding: '40px 16px' }}>
+      <img src={logo} alt="Logo" className="logo-small" />
+      <div className="bg-overlay">
         <h2 style={{ fontSize: 36, fontWeight: 700, marginTop: 24, marginBottom: 32, textAlign: 'center' }}>Energy</h2>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           <div style={{ fontWeight: 600, fontSize: 18, marginBottom: 8 }}>In which hostel do you live?</div>
@@ -122,26 +132,47 @@ export default function EnergyPage({ onNext }) {
           <OptionButtonGroup label="Time in Labs (hours/week)" name="timeLabs" value={form.timeLabs} onChange={handleOption} options={[{label:'0',value:0},{label:'1–5',value:3},{label:'6–10',value:8},{label:'11+',value:13}]} />
           <OptionButtonGroup label="Time in Library (hours/week)" name="timeLibrary" value={form.timeLibrary} onChange={handleOption} options={[{label:'0',value:0},{label:'1–5',value:3},{label:'6–10',value:8},{label:'11+',value:13}]} />
           <OptionButtonGroup label="Time in Gymkhana (hours/week)" name="timeGymkhana" value={form.timeGymkhana} onChange={handleOption} options={[{label:'0',value:0},{label:'1–5',value:3},{label:'6–10',value:8},{label:'11+',value:13}]} />
-          <button
-            type="submit"
-            style={{
-              background: 'linear-gradient(90deg, #8BC34A 0%, #4CAF50 100%)',
-              color: '#fff',
-              border: 'none',
-              fontWeight: 700,
-              fontSize: 22,
-              boxShadow: '0 4px 16px rgba(139,195,74,0.15)',
-              padding: '16px 0',
-              borderRadius: 999,
-              letterSpacing: 1,
-              marginTop: 32,
-              width: '100%',
-              cursor: 'pointer',
-              transition: 'background 0.2s',
-            }}
-          >
-            Next
-          </button>
+          <div style={{ display: 'flex', gap: 16, marginTop: 32 }}>
+            <button
+              type="button"
+              onClick={handleBack}
+              style={{
+                background: 'transparent',
+                color: '#666',
+                border: '2px solid #ddd',
+                fontWeight: 600,
+                fontSize: 18,
+                padding: '12px 24px',
+                borderRadius: 999,
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                flex: 1,
+              }}
+              onMouseOver={e => { e.currentTarget.style.background = '#f5f5f5'; e.currentTarget.style.color = '#333'; }}
+              onMouseOut={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#666'; }}
+            >
+              Back
+            </button>
+            <button
+              type="submit"
+              style={{
+                background: 'linear-gradient(90deg, #8BC34A 0%, #4CAF50 100%)',
+                color: '#fff',
+                border: 'none',
+                fontWeight: 700,
+                fontSize: 18,
+                boxShadow: '0 4px 16px rgba(139,195,74,0.15)',
+                padding: '12px 24px',
+                borderRadius: 999,
+                letterSpacing: 1,
+                cursor: 'pointer',
+                transition: 'background 0.2s',
+                flex: 1,
+              }}
+            >
+              Next
+            </button>
+          </div>
         </form>
       </div>
     </div>

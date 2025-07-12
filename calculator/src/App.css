@@ -55,19 +55,22 @@ body {
   box-shadow: 0 4px 24px rgba(0,0,0,0.08);
   padding: 48px 32px;
   margin: 48px auto;
-  max-width: 900px;
+  width: 100%;
+  max-width: 800px;
+  min-width: 600px;
 }
 
 .logo-small {
   position: absolute;
   top: 24px;
   left: 24px;
-  width: 60px;
-  height: 60px;
+  width: 64px;
+  height: 64px;
   z-index: 10;
   border-radius: 0;
   background: none;
   box-shadow: none;
+  object-fit: contain;
 }
 
 .bg-overlay h2 {
@@ -96,6 +99,7 @@ body {
   .bg-overlay {
     width: 96vw;
     max-width: 420px;
+    min-width: unset;
     max-height: 92vh;
     margin: 4vh auto;
     padding: 12px 2vw;
@@ -103,10 +107,11 @@ body {
     box-sizing: border-box;
   }
   .logo-small {
-    width: 40px;
-    height: 40px;
-    top: 8px;
-    left: 8px;
+    width: 64px;
+    height: 64px;
+    top: 16px;
+    left: 16px;
+    object-fit: contain;
   }
   .bg-overlay h2 {
     margin-top: 18px;
