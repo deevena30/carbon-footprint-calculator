@@ -414,10 +414,50 @@ function ScorePill({ label, value, color, icon }) {
   );
 }
 
-function ResultPage({ formData, onReset }) {
-  const results = calculateResults(formData);
+function ResultPage({ formData: propFormData, onReset }) {
   const navigate = useNavigate();
+  
+  // Get form data from props or localStorage
+  const getFormData = () => {
+    if (propFormData) {
+      return propFormData;
+    }
+    
+    // Try to get from localStorage
+    const savedData = localStorage.getItem('questionnaireData');
+    if (savedData) {
+      try {
+        return JSON.parse(savedData);
+      } catch (error) {
+        console.error('Error parsing saved data:', error);
+      }
+    }
+    
+    // Return default data if nothing is available
+    return {
+      hostelNo: 1,
+      credits: 0,
+      timeLabs: 0,
+      timeLibrary: 0,
+      timeGymkhana: 0,
+      dietType: 'Vegan',
+      foodOrders: 0,
+      outingsMonth: 0,
+      eatOutMonth: 0,
+      partyingMonth: 0,
+      shoppingMonth: 0,
+      outingType: 'South Bombay+Cab+meal',
+      autoRides: 0,
+      ecommerce: 0,
+      showers: 0,
+      bathDuration: 1
+    };
+  };
+  
+  const formData = getFormData();
+  const results = calculateResults(formData);
   const recommendations = generateRecommendations(formData, results);
+  
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
       <div className="bg-overlay" style={{ borderRadius: 32, background: 'rgba(255,255,255,0.97)', boxShadow: '0 8px 32px rgba(139,195,74,0.10)' }}>
@@ -481,10 +521,10 @@ function ResultPage({ formData, onReset }) {
         <div style={{ fontSize: 16, color: '#666', marginTop: 24, textAlign: 'center' }}>
           <b>What does this mean?</b> The Green Score is an average of your Carbon, Water, and Waste scores. Higher is better! Each score is based on your daily habits and resource usage.
         </div>
-        {/* Calculate Again Button */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 40 }}>
+        {/* Action Buttons */}
+        <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 40 }}>
           <button
-            onClick={() => navigate('/')}
+            onClick={() => navigate('/questionnaire')}
             style={{
               background: 'linear-gradient(90deg, #8BC34A 0%, #4CAF50 100%)',
               color: '#fff',
@@ -500,6 +540,22 @@ function ResultPage({ formData, onReset }) {
             }}
           >
             Calculate Again
+          </button>
+          <button
+            onClick={() => navigate('/dashboard')}
+            style={{
+              background: 'transparent',
+              color: '#666',
+              border: '2px solid #ddd',
+              fontWeight: 600,
+              fontSize: 18,
+              padding: '12px 24px',
+              borderRadius: 999,
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+            }}
+          >
+            Back to Dashboard
           </button>
         </div>
       </div>

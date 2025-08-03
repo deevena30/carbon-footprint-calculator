@@ -1,0 +1,11 @@
+import React from 'react';
+import logo from '../assets/logo.png'; // Adjust path if needed
+
+const LoginPage = () => (
+  <div className="login-container">
+    <img src={logo} alt="Sustainability Cell Logo" style={{ width: '120px', marginBottom: '20px' }} />
+    {/* ...existing login form or text... */}
+  </div>
+);
+
+export default LoginPage;

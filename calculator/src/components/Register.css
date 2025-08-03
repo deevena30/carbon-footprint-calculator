@@ -1,0 +1,291 @@
+.register-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: url('/iitbombay 1.png') no-repeat center center fixed;
+  background-size: cover;
+  padding: 20px;
+  position: relative;
+}
+
+.register-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(2px);
+}
+
+.sustainability-header {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.sustainability-header h1 {
+  color: #222;
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  font-family: 'Poppins', sans-serif;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.sustainability-header p {
+  color: #666;
+  font-size: 16px;
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.register-card {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 24px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  padding: 48px 32px;
+  width: 100%;
+  max-width: 450px;
+  position: relative;
+  z-index: 1;
+  animation: slideUp 0.6s ease-out;
+  backdrop-filter: blur(2px);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.register-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.register-header h1 {
+  color: #222;
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.register-header p {
+  color: #666;
+  font-size: 16px;
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.error-message {
+  background: #fdf2f2;
+  color: #e74c3c;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
+  font-size: 13px;
+  text-align: center;
+  margin-bottom: 16px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.input-group {
+  position: relative;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 16px;
+  color: #8BC34A;
+  font-size: 18px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.register-input {
+  width: 100%;
+  padding: 16px 16px 16px 52px;
+  border: 2px solid #e1e5e9;
+  border-radius: 12px;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.9);
+  font-family: 'Poppins', sans-serif;
+  box-sizing: border-box;
+}
+
+.register-input:focus {
+  outline: none;
+  border-color: #8BC34A;
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 0 0 3px rgba(139, 195, 74, 0.1);
+}
+
+.register-input::placeholder {
+  color: #999;
+  font-family: 'Poppins', sans-serif;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 16px;
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 18px;
+  transition: color 0.3s ease;
+  z-index: 1;
+}
+
+.password-toggle:hover {
+  color: #8BC34A;
+}
+
+.register-button {
+  background: linear-gradient(90deg, #8BC34A 0%, #4CAF50 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 24px rgba(76,175,80,0.18);
+  font-family: 'Poppins', sans-serif;
+}
+
+.register-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(76,175,80,0.22);
+}
+
+.register-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.register-footer {
+  text-align: center;
+  margin-top: 24px;
+}
+
+.register-footer p {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.link {
+  color: #8BC34A;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.link:hover {
+  color: #4CAF50;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .sustainability-header h1 {
+    font-size: 28px;
+  }
+  
+  .register-card {
+    padding: 30px 20px;
+    margin: 10px;
+    max-width: 100%;
+  }
+  
+  .register-header h1 {
+    font-size: 24px;
+  }
+  
+  .register-header p {
+    font-size: 14px;
+  }
+  
+  .register-input {
+    padding: 14px 14px 14px 48px;
+    font-size: 15px;
+  }
+  
+  .input-icon {
+    left: 14px;
+    font-size: 16px;
+  }
+  
+  .password-toggle {
+    right: 14px;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-container {
+    padding: 15px;
+  }
+  
+  .sustainability-header h1 {
+    font-size: 24px;
+  }
+  
+  .sustainability-header p {
+    font-size: 14px;
+  }
+  
+  .register-card {
+    padding: 25px 15px;
+  }
+  
+  .register-header h1 {
+    font-size: 22px;
+  }
+  
+  .register-header p {
+    font-size: 13px;
+  }
+  
+  .register-input {
+    padding: 12px 12px 12px 44px;
+    font-size: 14px;
+  }
+  
+  .input-icon {
+    left: 12px;
+    font-size: 15px;
+  }
+  
+  .password-toggle {
+    right: 12px;
+    font-size: 15px;
+  }
+} 

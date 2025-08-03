@@ -1,56 +1,121 @@
-import { HashRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
-import StartingPage from './StartingPage';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Login from './components/Login';
+import Register from './components/Register';
+import Questionnaire from './components/Questionnaire';
+import Dashboard from './components/Dashboard';
 import ResultPage from './Resultpage';
-import EnergyPage from './EnergyPage';
-import FoodPage from './FoodPage';
-import TransportPage from './TransportPage';
-import WaterPage from './WaterPage';
 import { useState, useEffect } from 'react';
 import './App.css';
 
 function App() {
-  const [formData, setFormData] = useState({});
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Load saved form data from localStorage on component mount
   useEffect(() => {
-    const savedData = localStorage.getItem('carbonFootprintData');
-    if (savedData) {
-      try {
-        setFormData(JSON.parse(savedData));
-      } catch (error) {
-        console.error('Error loading saved data:', error);
-      }
+    // Check if user is authenticated
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    
+    if (token && user) {
+      setIsAuthenticated(true);
+    } else {
+      setIsAuthenticated(false);
     }
+    
+    setIsLoading(false);
   }, []);
 
-  const handleNext = (data) => {
-    const newFormData = { ...formData, ...data };
-    setFormData(newFormData);
-    // Save to localStorage
-    localStorage.setItem('carbonFootprintData', JSON.stringify(newFormData));
+  // Update authentication state when localStorage changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const token = localStorage.getItem('token');
+      const user = localStorage.getItem('user');
+      setIsAuthenticated(!!(token && user));
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Protected Route component
+  const ProtectedRoute = ({ children }) => {
+    if (isLoading) {
+      return <div className="loading">Loading...</div>;
+    }
+    
+    if (!isAuthenticated) {
+      return <Navigate to="/login" replace />;
+    }
+    
+    return children;
   };
 
-  const handleReset = () => {
-    setFormData({});
-    localStorage.removeItem('carbonFootprintData');
+  // Public Route component (redirects to dashboard if already authenticated)
+  const PublicRoute = ({ children }) => {
+    if (isLoading) {
+      return <div className="loading">Loading...</div>;
+    }
+    
+    if (isAuthenticated) {
+      return <Navigate to="/dashboard" replace />;
+    }
+    
+    return children;
   };
-
-  // Custom wrapper for StartingPage to add navigation
-  function StartingPageWithNav() {
-    const navigate = useNavigate();
-    return <StartingPage onStart={() => navigate('/energy')} onReset={handleReset} />;
-  }
 
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<StartingPageWithNav />} />
-        <Route path="/energy" element={<EnergyPage onNext={handleNext} formData={formData} />} />
-        <Route path="/food" element={<FoodPage onNext={handleNext} formData={formData} />} />
-        <Route path="/transport" element={<TransportPage onNext={handleNext} formData={formData} />} />
-        <Route path="/water" element={<WaterPage onNext={handleNext} formData={formData} />} />
-        <Route path="/results" element={<ResultPage formData={formData} onReset={handleReset} />} />
-      </Routes>
+      <div className="App">
+        <Routes>
+          {/* Public routes */}
+          <Route 
+            path="/login" 
+            element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            } 
+          />
+          <Route 
+            path="/register" 
+            element={
+              <PublicRoute>
+                <Register />
+              </PublicRoute>
+            } 
+          />
+          
+          {/* Protected routes */}
+          <Route 
+            path="/questionnaire" 
+            element={
+              <ProtectedRoute>
+                <Questionnaire />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/dashboard" 
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/results" 
+            element={
+              <ProtectedRoute>
+                <ResultPage />
+              </ProtectedRoute>
+            } 
+          />
+          
+          {/* Default redirect */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </div>
     </Router>
   );
 }
