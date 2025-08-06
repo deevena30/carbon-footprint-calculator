@@ -60,34 +60,38 @@ const Register = () => {
     setIsLoading(true);
     setError('');
 
+    // Basic frontend validation
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match.');
+      setIsLoading(false);
+      return;
+    }
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters long.');
+      setIsLoading(false);
+      return;
+    }
+
     try {
-      if (!validateForm()) {
+      // Call backend API
+      const response = await fetch('http://localhost:5000/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: formData.firstName, // or combine first+last if needed
+          email: formData.email,
+          password: formData.password
+        })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.msg || 'Registration failed.');
         setIsLoading(false);
         return;
       }
-
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Create new user
-      const newUser = {
-        id: Date.now(),
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        password: formData.password,
-        createdAt: new Date().toISOString()
-      };
-
-      // Get existing users and add new user
-      const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-      registeredUsers.push(newUser);
-      localStorage.setItem('registeredUsers', JSON.stringify(registeredUsers));
-
-      // Show success message and redirect to login
+      // Success
       alert('Account created successfully! Please login with your credentials.');
       navigate('/login', { state: { fromRegistration: true } });
-
     } catch (error) {
       console.error('Registration error:', error);
       setError('An error occurred during registration. Please try again.');

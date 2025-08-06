@@ -38,7 +38,24 @@
   flex-wrap: wrap;
   gap: 16px;
 }
-
+.calculate-score-btn {
+  background: #8BC34A;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+}
+.calculate-score-btn:hover {
+  background: #4CAF50;
+}
+.logout-btn {
+  background: #f8f9fa;
+  color: #666;
+}
+.logout-btn:hover {
+  background: #e9ecef;
+  border-color: #adb5bd;
+}
 .user-info {
   display: flex;
   align-items: center;

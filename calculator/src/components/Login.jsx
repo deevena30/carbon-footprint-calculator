@@ -45,38 +45,26 @@ const Login = () => {
     setError('');
 
     try {
-      // Get registered users from localStorage
-      const registeredUsers = JSON.parse(localStorage.getItem('registeredUsers') || '[]');
-      
-      // Find user with matching email and password
-      const user = registeredUsers.find(u => 
-        u.email === formData.email && u.password === formData.password
-      );
-
-      if (!user) {
-        setError('Invalid email or password. Please check your credentials.');
+      // Call backend API
+      const response = await fetch('http://localhost:5000/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: formData.email, // Using email as username for login
+          password: formData.password
+        })
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.msg || 'Invalid email or password. Please check your credentials.');
         setIsLoading(false);
         return;
       }
-
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Store user data and token
-      localStorage.setItem('token', 'mock-jwt-token-' + Date.now());
-      localStorage.setItem('user', JSON.stringify({
-        id: user.id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        email: user.email
-      }));
-
-      // Trigger storage event to update authentication state
+      // Store JWT token and user info
+      localStorage.setItem('token', data.access_token);
+      localStorage.setItem('user', JSON.stringify(data.user));
       window.dispatchEvent(new Event('storage'));
-
-      // Navigate to dashboard
       navigate('/dashboard');
-
     } catch (error) {
       console.error('Login error:', error);
       setError('An error occurred during login. Please try again.');

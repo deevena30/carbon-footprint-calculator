@@ -47,15 +47,26 @@ const Dashboard = () => {
   const fetchCarbonData = async () => {
     setIsLoading(true);
     setError(null);
-
     try {
-      // Simulate API call for now (since backend is not ready)
-      // TODO: Replace with actual API call when backend is ready
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
-      
-      // For now, use mock data directly
-      setCarbonData(getMockCarbonData());
-      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setError('You must be logged in to view the dashboard.');
+        setIsLoading(false);
+        return;
+      }
+      const response = await fetch('http://localhost:5000/api/dashboard', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.msg || 'Failed to load carbon footprint data');
+        setIsLoading(false);
+        return;
+      }
+      setCarbonData(data.dashboard);
     } catch (error) {
       console.error('Error fetching carbon data:', error);
       setError('Failed to load carbon footprint data');
@@ -168,6 +179,20 @@ const Dashboard = () => {
     );
   }
 
+  if (error === 'No questionnaire data found') {
+    return (
+      <div className="dashboard-container">
+        <div className="no-data-message">
+          <p>You haven't calculated your carbon score yet.</p>
+          <button onClick={() => navigate('/questionnaire')} className="calculate-score-btn">
+            Calculate Your Carbon Score
+          </button>
+          <button onClick={handleLogout} className="logout-btn">Logout</button>
+        </div>
+      </div>
+    );
+  }
+
   if (error) {
     return (
       <div className="dashboard-container">
@@ -186,7 +211,7 @@ const Dashboard = () => {
           <div className="user-info">
             <FaUser className="user-icon" />
             <div>
-              <h1>Welcome back, {user?.firstName || 'User'}!</h1>
+              <h1>Welcome back, {user?.username || user?.email || 'User'}!</h1>
               <p>Here's your carbon footprint overview</p>
             </div>
           </div>
