@@ -235,7 +235,7 @@ const Questionnaire = () => {
         bathDuration: 1,
         isResponsible: false
       });
-      navigate('/dashboard');
+      navigate('/results');
     } catch (error) {
       console.error('Questionnaire submission error:', error);
       setErrors({ general: 'Network error. Please try again.' });

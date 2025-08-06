@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import logo from './assets/logo.png';
 import { FaLeaf, FaTint, FaRecycle, FaTrophy, FaBolt, FaCloud, FaWalking, FaWater, FaTrash } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +12,8 @@ import { useNavigate } from 'react-router-dom';
 // import I2 from './assets/2.png';
 // import I3 from './assets/3.png';
 // import I4 from './assets/4.png';
+
+<pre>{JSON.stringify(dashboardData, null, 2)}</pre>
 
 function DivBox({ left, top, children }) {
   return (
@@ -414,50 +416,62 @@ function ScorePill({ label, value, color, icon }) {
   );
 }
 
-function ResultPage({ formData: propFormData, onReset }) {
+function ResultPage() {
   const navigate = useNavigate();
-  
-  // Get form data from props or localStorage
-  const getFormData = () => {
-    if (propFormData) {
-      return propFormData;
-    }
-    
-    // Try to get from localStorage
-    const savedData = localStorage.getItem('questionnaireData');
-    if (savedData) {
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        return JSON.parse(savedData);
-      } catch (error) {
-        console.error('Error parsing saved data:', error);
+        const token = localStorage.getItem('token');
+        if (!token) {
+          setError('You must be logged in to view results.');
+          setLoading(false);
+          return;
+        }
+        const response = await fetch('http://localhost:5000/api/dashboard', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          setError(data.msg || 'Failed to load results');
+          setLoading(false);
+          return;
+        }
+        setDashboardData(data.dashboard);
+      } catch (err) {
+        setError('Failed to load results');
+      } finally {
+        setLoading(false);
       }
-    }
-    
-    // Return default data if nothing is available
-    return {
-      hostelNo: 1,
-      credits: 0,
-      timeLabs: 0,
-      timeLibrary: 0,
-      timeGymkhana: 0,
-      dietType: 'Vegan',
-      foodOrders: 0,
-      outingsMonth: 0,
-      eatOutMonth: 0,
-      partyingMonth: 0,
-      shoppingMonth: 0,
-      outingType: 'South Bombay+Cab+meal',
-      autoRides: 0,
-      ecommerce: 0,
-      showers: 0,
-      bathDuration: 1
     };
-  };
-  
-  const formData = getFormData();
-  const results = calculateResults(formData);
-  const recommendations = generateRecommendations(formData, results);
-  
+    fetchDashboardData();
+  }, []);
+
+  if (loading) {
+    return <div style={{ textAlign: 'center', marginTop: 40 }}>Loading your results...</div>;
+  }
+  if (error) {
+    return <div style={{ textAlign: 'center', marginTop: 40, color: 'red' }}>{error}</div>;
+  }
+  if (!dashboardData) {
+    return <div style={{ textAlign: 'center', marginTop: 40 }}>No results found.</div>;
+  }
+
+  // Debug print
+  // Remove this after confirming data structure
+  // <pre>{JSON.stringify(dashboardData, null, 2)}</pre>
+
+  const results = dashboardData;
+  const recommendations = dashboardData.recommendations || [];
+
   return (
     <div style={{ position: 'relative', minHeight: '100vh' }}>
       <div className="bg-overlay" style={{ borderRadius: 32, background: 'rgba(255,255,255,0.97)', boxShadow: '0 8px 32px rgba(139,195,74,0.10)' }}>
