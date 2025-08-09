@@ -98,7 +98,6 @@ const Dashboard = () => {
       }
       
       setCarbonData(data.dashboard);
-      console.log('Setting recentScores:', data.recentScores);
       setRecentScores(data.recentScores || []);
     } catch (error) {
       console.error('Error fetching carbon data:', error);
@@ -295,10 +294,9 @@ const Dashboard = () => {
         </div>
 
         {/* Recent Scores Section */}
-        {console.log('Rendering recent scores check:', { recentScores, length: recentScores?.length })}
-        <div className="recent-scores-section">
-          <h2>Previous Scores</h2>
-          {recentScores && recentScores.length > 0 ? (
+        {recentScores && recentScores.length > 0 && (
+          <div className="recent-scores-section">
+            <h2>Previous Scores ({recentScores.length})</h2>
             <div className="recent-scores-grid">
               {recentScores.map((score, index) => (
                 <div key={index} className="recent-score-card">
@@ -314,12 +312,8 @@ const Dashboard = () => {
                 </div>
               ))}
             </div>
-          ) : (
-            <div style={{ textAlign: 'center', color: '#666', padding: '20px' }}>
-              <p>No previous scores yet. Complete the questionnaire multiple times to see your progress!</p>
-            </div>
-          )}
-        </div>
+          </div>
+        )}
 
         <div className="dashboard-grid">
           <div className="category-breakdown">
