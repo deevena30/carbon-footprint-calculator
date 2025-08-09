@@ -46,12 +46,13 @@ function normalize(value, min, max, newMin, newMax) {
 }
 
 function scoreFromValue(value, min, max) {
-  // Higher value = lower score, so invert
+  // Lower usage = higher score (better for environment)
   if (max === min) {
     return 5.0; // Return middle score if min and max are the same
   }
   const normalized = (value - min) / (max - min);
-  const score = 10 - normalized * 9; // 10 (best) to 1 (worst)
+  // Invert the score: lower usage gets higher score
+  const score = 1 + (1 - normalized) * 9; // 1 (worst) to 10 (best), inverted
   return Math.max(1, Math.min(10, parseFloat(score.toFixed(2))));
 }
 

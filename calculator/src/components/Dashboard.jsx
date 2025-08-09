@@ -98,7 +98,19 @@ const Dashboard = () => {
       }
       
       setCarbonData(data.dashboard);
-      setRecentScores(data.recentScores || []);
+      // Filter out duplicate scores (same greenScore, carbonScore, waterScore, wasteScore)
+      const uniqueScores = [];
+      const seenScores = new Set();
+      
+      (data.recentScores || []).forEach(score => {
+        const scoreKey = `${score.greenScore}-${score.carbonScore}-${score.waterScore}-${score.wasteScore}`;
+        if (!seenScores.has(scoreKey)) {
+          seenScores.add(scoreKey);
+          uniqueScores.push(score);
+        }
+      });
+      
+      setRecentScores(uniqueScores);
     } catch (error) {
       console.error('Error fetching carbon data:', error);
       // If backend is not running, show new user experience
@@ -300,7 +312,7 @@ const Dashboard = () => {
             <div className="recent-scores-grid">
               {recentScores.map((score, index) => (
                 <div key={index} className="recent-score-card">
-                  <div className="score-date">{new Date(score.date).toLocaleDateString()}</div>
+                  <div className="score-date">{new Date(score.date).toLocaleDateString()} {new Date(score.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
                   <div className="score-value" style={{ color: getScoreColor(score.greenScore) }}>
                     {score.greenScore}/10
                   </div>
