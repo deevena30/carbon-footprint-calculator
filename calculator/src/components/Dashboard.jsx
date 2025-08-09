@@ -14,37 +14,54 @@ import {
   FaEdit,
   FaTrophy,
   FaExclamationTriangle,
-  FaCheckCircle
+  FaCheckCircle,
+  FaTree,
+  FaWater,
+  FaWind,
+  FaSun,
+  FaBolt
 } from 'react-icons/fa';
 import './Dashboard.css';
 
 const Dashboard = () => {
+  console.log('Dashboard component starting to render');
+  
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [carbonData, setCarbonData] = useState(null);
+  const [recentScores, setRecentScores] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Check if user is logged in
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-    
-    if (!token || !userData) {
-      navigate('/login');
-      return;
-    }
+    const initializeDashboard = async () => {
+      try {
+        // Check if user is logged in
+        const token = localStorage.getItem('token');
+        const userData = localStorage.getItem('user');
+        
+        if (!token || !userData) {
+          console.log('No token or user data found, redirecting to login');
+          navigate('/login');
+          return;
+        }
 
-    try {
-      setUser(JSON.parse(userData));
-      fetchCarbonData();
-    } catch (error) {
-      console.error('Error parsing user data:', error);
-      navigate('/login');
-    }
+        const parsedUser = JSON.parse(userData);
+        console.log('User data parsed:', parsedUser);
+        setUser(parsedUser);
+        
+        await fetchDashboardData();
+      } catch (error) {
+        console.error('Error initializing dashboard:', error);
+        setError('Failed to initialize dashboard');
+        setIsLoading(false);
+      }
+    };
+
+    initializeDashboard();
   }, [navigate]);
 
-  const fetchCarbonData = async () => {
+  const fetchDashboardData = async () => {
     setIsLoading(true);
     setError(null);
     try {
@@ -54,82 +71,48 @@ const Dashboard = () => {
         setIsLoading(false);
         return;
       }
+      
+      console.log('Fetching dashboard data...');
       const response = await fetch('http://localhost:5000/api/dashboard', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
+      
+      console.log('Response status:', response.status);
       const data = await response.json();
+      console.log('Response data:', data);
+      
       if (!response.ok) {
-        setError(data.msg || 'Failed to load carbon footprint data');
+        if (response.status === 404) {
+          // New user - no data yet
+          console.log('No data found for user, showing new user experience');
+          setCarbonData(null);
+          setRecentScores([]);
+        } else {
+          setError(data.msg || 'Failed to load carbon footprint data');
+        }
         setIsLoading(false);
         return;
       }
+      
       setCarbonData(data.dashboard);
+      console.log('Setting recentScores:', data.recentScores);
+      setRecentScores(data.recentScores || []);
     } catch (error) {
       console.error('Error fetching carbon data:', error);
-      setError('Failed to load carbon footprint data');
+      // If backend is not running, show new user experience
+      if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+        console.log('Backend not running, showing new user experience');
+        setCarbonData(null);
+        setRecentScores([]);
+      } else {
+        setError('Failed to load carbon footprint data. Please check your connection.');
+      }
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const getMockCarbonData = () => {
-    return {
-      totalEmissions: 8.5,
-      score: 75,
-      categoryBreakdown: {
-        energy: 3.2,
-        transportation: 2.8,
-        food: 1.5,
-        waste: 0.5,
-        water: 0.3,
-        shopping: 0.2
-      },
-      recommendations: [
-        {
-          id: 1,
-          category: 'Energy',
-          title: 'Switch to LED bulbs',
-          description: 'Replace incandescent bulbs with LED bulbs to reduce energy consumption by up to 80%.',
-          impact: 'High',
-          difficulty: 'Easy',
-          potentialSavings: 0.8
-        },
-        {
-          id: 2,
-          category: 'Transportation',
-          title: 'Use public transport more',
-          description: 'Take public transportation 2 more days per week to reduce your carbon footprint.',
-          impact: 'Medium',
-          difficulty: 'Medium',
-          potentialSavings: 0.5
-        },
-        {
-          id: 3,
-          category: 'Food',
-          title: 'Reduce meat consumption',
-          description: 'Try meatless Mondays or reduce meat consumption by 25% to lower your food carbon footprint.',
-          impact: 'High',
-          difficulty: 'Medium',
-          potentialSavings: 0.6
-        },
-        {
-          id: 4,
-          category: 'Waste',
-          title: 'Improve recycling',
-          description: 'Increase your recycling rate to 80% and compost organic waste.',
-          impact: 'Medium',
-          difficulty: 'Easy',
-          potentialSavings: 0.3
-        }
-      ],
-      trends: {
-        monthly: [8.2, 8.0, 7.8, 7.5, 7.2, 8.5],
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
-      }
-    };
   };
 
   const handleLogout = () => {
@@ -142,7 +125,7 @@ const Dashboard = () => {
     navigate('/login');
   };
 
-  const handleEditProfile = () => {
+  const handleCalculateScore = () => {
     navigate('/questionnaire');
   };
 
@@ -151,22 +134,48 @@ const Dashboard = () => {
   };
 
   const getScoreColor = (score) => {
-    if (score >= 80) return '#10b981';
-    if (score >= 60) return '#f59e0b';
-    return '#ef4444';
+    if (score >= 8) return '#10b981'; // Green for high scores
+    if (score >= 5) return '#f59e0b'; // Orange for moderate scores
+    return '#ef4444'; // Red for low scores
   };
 
   const getScoreIcon = (score) => {
-    if (score >= 80) return <FaTrophy className="score-icon excellent" />;
-    if (score >= 60) return <FaCheckCircle className="score-icon good" />;
+    if (score >= 8) return <FaTrophy className="score-icon excellent" />;
+    if (score >= 5) return <FaCheckCircle className="score-icon good" />;
     return <FaExclamationTriangle className="score-icon poor" />;
   };
 
   const getScoreText = (score) => {
-    if (score >= 80) return 'Excellent';
-    if (score >= 60) return 'Good';
+    if (score >= 8) return 'Excellent';
+    if (score >= 5) return 'Moderate';
     return 'Needs Improvement';
   };
+
+  const environmentalFacts = [
+    {
+      icon: <FaTree />,
+      title: "Tree Planting Impact",
+      fact: "A single tree can absorb up to 48 pounds of CO2 per year and release enough oxygen for 2 people."
+    },
+    {
+      icon: <FaWater />,
+      title: "Water Conservation",
+      fact: "A 5-minute shower uses about 25-50 gallons of water, while a bath can use up to 70 gallons."
+    },
+    {
+      icon: <FaWind />,
+      title: "Renewable Energy",
+      fact: "Wind energy could provide 20% of the world's electricity by 2030, reducing CO2 emissions by 3.3 billion tons."
+    },
+    {
+      icon: <FaSun />,
+      title: "Solar Power",
+      fact: "The sun provides enough energy in one hour to meet the world's energy needs for an entire year."
+    }
+  ];
+
+  // Simple test to ensure component renders
+  console.log('Dashboard component rendering, state:', { isLoading, error, carbonData, user });
 
   if (isLoading) {
     return (
@@ -179,15 +188,51 @@ const Dashboard = () => {
     );
   }
 
-  if (error === 'No questionnaire data found') {
+  // New user - no data yet
+  if (!carbonData && !error) {
     return (
       <div className="dashboard-container">
-        <div className="no-data-message">
-          <p>You haven't calculated your carbon score yet.</p>
-          <button onClick={() => navigate('/questionnaire')} className="calculate-score-btn">
-            Calculate Your Carbon Score
-          </button>
-          <button onClick={handleLogout} className="logout-btn">Logout</button>
+        <div className="dashboard-header">
+          <div className="header-content">
+            <div className="user-info">
+              <FaUser className="user-icon" />
+              <div>
+                <h1>Welcome, {user?.username || user?.email || 'User'}!</h1>
+                <p>Start your sustainability journey today</p>
+              </div>
+            </div>
+            <div className="header-actions">
+              <button className="calculate-score-btn" onClick={handleCalculateScore}>
+                <FaLeaf /> Calculate Your Carbon Score
+              </button>
+              <button className="logout-button" onClick={handleLogout}>
+                <FaSignOutAlt /> Logout
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="dashboard-content">
+          <div className="welcome-section">
+            <h2>Begin Your Sustainability Journey</h2>
+            <p>Calculate your carbon footprint and discover personalized recommendations to reduce your environmental impact.</p>
+            <button className="primary-action-btn" onClick={handleCalculateScore}>
+              <FaLeaf /> Start Assessment
+            </button>
+          </div>
+
+          <div className="environmental-facts">
+            <h2>Environmental Facts</h2>
+            <div className="facts-grid">
+              {environmentalFacts && environmentalFacts.map((fact, index) => (
+                <div key={index} className="fact-card">
+                  <div className="fact-icon">{fact.icon}</div>
+                  <h3>{fact.title}</h3>
+                  <p>{fact.fact}</p>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -198,12 +243,13 @@ const Dashboard = () => {
       <div className="dashboard-container">
         <div className="error-message">
           <p>{error}</p>
-          <button onClick={fetchCarbonData}>Try Again</button>
+          <button onClick={fetchDashboardData}>Try Again</button>
         </div>
       </div>
     );
   }
 
+  // If we get here, we should have data
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
@@ -216,7 +262,7 @@ const Dashboard = () => {
             </div>
           </div>
           <div className="header-actions">
-            <button className="edit-button" onClick={handleEditProfile}>
+            <button className="edit-button" onClick={handleCalculateScore}>
               <FaEdit /> Update Assessment
             </button>
             <button className="view-results-button" onClick={handleViewResults}>
@@ -231,101 +277,128 @@ const Dashboard = () => {
 
       <div className="dashboard-content">
         <div className="main-metrics">
-          <div className="metric-card total-emissions">
-            <div className="metric-icon">
-              <FaLeaf />
-            </div>
-            <div className="metric-content">
-              <h3>Total Carbon Footprint</h3>
-              <div className="metric-value">
-                {carbonData?.totalEmissions || 0} <span>tons CO₂/year</span>
-              </div>
-              <p>Your annual carbon emissions</p>
-            </div>
-          </div>
-
           <div className="metric-card score-card">
             <div className="metric-icon">
-              {getScoreIcon(carbonData?.score || 0)}
+              {getScoreIcon(carbonData?.greenScore || 0)}
             </div>
             <div className="metric-content">
-              <h3>Sustainability Score</h3>
+              <h3>Carbon Score</h3>
               <div 
                 className="metric-value score-value"
-                style={{ color: getScoreColor(carbonData?.score || 0) }}
+                style={{ color: getScoreColor(carbonData?.greenScore || 0) }}
               >
-                {carbonData?.score || 0}%
+                {carbonData?.greenScore || 0}/10
               </div>
-              <p>{getScoreText(carbonData?.score || 0)}</p>
+              <p>{getScoreText(carbonData?.greenScore || 0)}</p>
             </div>
           </div>
         </div>
+
+        {/* Recent Scores Section */}
+        {console.log('Rendering recent scores check:', { recentScores, length: recentScores?.length })}
+        {recentScores && recentScores.length > 0 && (
+          <div className="recent-scores-section">
+            <h2>Previous Scores ({recentScores.length})</h2>
+            <div className="recent-scores-grid">
+              {recentScores.map((score, index) => (
+                <div key={index} className="recent-score-card">
+                  <div className="score-date">{new Date(score.date).toLocaleDateString()}</div>
+                  <div className="score-value" style={{ color: getScoreColor(score.greenScore) }}>
+                    {score.greenScore}/10
+                  </div>
+                  <div className="score-breakdown">
+                    <span>C: {score.carbonScore}</span>
+                    <span>W: {score.waterScore}</span>
+                    <span>W: {score.wasteScore}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="dashboard-grid">
           <div className="category-breakdown">
             <h2>Emissions by Category</h2>
             <div className="category-list">
-              {carbonData?.categoryBreakdown && Object.entries(carbonData.categoryBreakdown).map(([category, value]) => (
-                <div key={category} className="category-item">
-                  <div className="category-info">
-                    <div className="category-icon">
-                      {category === 'energy' && <FaLightbulb />}
-                      {category === 'transportation' && <FaCar />}
-                      {category === 'food' && <FaUtensils />}
-                      {category === 'waste' && <FaRecycle />}
-                      {category === 'water' && <FaHome />}
-                      {category === 'shopping' && <FaShoppingCart />}
-                    </div>
-                    <div className="category-details">
-                      <span className="category-name">{category.charAt(0).toUpperCase() + category.slice(1)}</span>
-                      <span className="category-value">{value} tons CO₂/year</span>
-                    </div>
+              <div className="category-item">
+                <div className="category-info">
+                  <div className="category-icon">
+                    <FaBolt />
                   </div>
-                  <div className="category-percentage">
-                    {((value / carbonData.totalEmissions) * 100).toFixed(1)}%
+                  <div className="category-details">
+                    <span className="category-name">Electricity</span>
+                    <span className="category-value">{carbonData?.electricity || 0} kWh/day</span>
                   </div>
                 </div>
-              ))}
+                <div className="category-percentage">
+                  {carbonData?.electricity ? ((carbonData.electricity / (carbonData.totalCarbon || 1)) * 100).toFixed(1) : 0}%
+                </div>
+              </div>
+              <div className="category-item">
+                <div className="category-info">
+                  <div className="category-icon">
+                    <FaCar />
+                  </div>
+                  <div className="category-details">
+                    <span className="category-name">Transportation</span>
+                    <span className="category-value">{carbonData?.outings || 0} kg CO₂/day</span>
+                  </div>
+                </div>
+                <div className="category-percentage">
+                  {carbonData?.outings ? ((carbonData.outings / (carbonData.totalCarbon || 1)) * 100).toFixed(1) : 0}%
+                </div>
+              </div>
+              <div className="category-item">
+                <div className="category-info">
+                  <div className="category-icon">
+                    <FaUtensils />
+                  </div>
+                  <div className="category-details">
+                    <span className="category-name">Food</span>
+                    <span className="category-value">{carbonData?.scope3 || 0} kg CO₂/day</span>
+                  </div>
+                </div>
+                <div className="category-percentage">
+                  {carbonData?.scope3 ? ((carbonData.scope3 / (carbonData.totalCarbon || 1)) * 100).toFixed(1) : 0}%
+                </div>
+              </div>
+              <div className="category-item">
+                <div className="category-info">
+                  <div className="category-icon">
+                    <FaWater />
+                  </div>
+                  <div className="category-details">
+                    <span className="category-name">Water</span>
+                    <span className="category-value">{carbonData?.water || 0} L/day</span>
+                  </div>
+                </div>
+                <div className="category-percentage">
+                  {carbonData?.water ? ((carbonData.water / 200) * 100).toFixed(1) : 0}%
+                </div>
+              </div>
             </div>
           </div>
 
           <div className="recommendations">
             <h2>Personalized Recommendations</h2>
             <div className="recommendations-list">
-              {carbonData?.recommendations?.map((rec) => (
-                <div key={rec.id} className="recommendation-card">
+              {carbonData?.recommendations?.map((rec, index) => (
+                <div key={index} className="recommendation-card">
                   <div className="recommendation-header">
                     <div className="recommendation-category">{rec.category}</div>
-                    <div className={`impact-badge ${rec.impact.toLowerCase()}`}>
-                      {rec.impact} Impact
+                    <div className="impact-badge high">
+                      High Impact
                     </div>
                   </div>
                   <h3>{rec.title}</h3>
                   <p>{rec.description}</p>
-                  <div className="recommendation-footer">
-                    <span className="difficulty">Difficulty: {rec.difficulty}</span>
-                    <span className="savings">Save {rec.potentialSavings} tons CO₂/year</span>
-                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="trends-section">
-          <h2>Monthly Trends</h2>
-          <div className="trends-chart">
-            <div className="chart-placeholder">
-              <FaChartLine className="chart-icon" />
-              <p>Chart visualization will be implemented with backend integration</p>
-              <div className="trend-data">
-                {carbonData?.trends?.monthly?.map((value, index) => (
-                  <div key={index} className="trend-point">
-                    <span className="trend-value">{value}</span>
-                    <span className="trend-label">{carbonData.trends.labels[index]}</span>
-                  </div>
-                ))}
-              </div>
+              )) || (
+                <div className="no-recommendations">
+                  <p>Complete your assessment to get personalized recommendations!</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

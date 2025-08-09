@@ -11,6 +11,7 @@ from flask_cors import CORS
 from flask_jwt_extended import create_access_token
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import QuestionnaireData
+from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)
@@ -66,6 +67,10 @@ def submit_data():
     data = request.get_json()
     if not data:
         return jsonify({'msg': 'No data provided'}), 400
+    
+    # Add timestamp to the data
+    data['submitted_at'] = datetime.utcnow().isoformat()
+    
     qdata = QuestionnaireData(user_id=user_id, data=data)
     db.session.add(qdata)
     db.session.commit()
@@ -75,11 +80,34 @@ def submit_data():
 @jwt_required()
 def dashboard():
     user_id = get_jwt_identity()
-    qdata = QuestionnaireData.query.filter_by(user_id=user_id).order_by(QuestionnaireData.submitted_at.desc()).first()
-    if not qdata:
+    
+    # Get the most recent questionnaire data
+    latest_data = QuestionnaireData.query.filter_by(user_id=user_id).order_by(QuestionnaireData.submitted_at.desc()).first()
+    
+    if not latest_data:
         return jsonify({'msg': 'No questionnaire data found'}), 404
-    # Return the stored data directly
-    return jsonify({'dashboard': qdata.data})
+    
+    # Get recent scores (last 3)
+    recent_scores = QuestionnaireData.query.filter_by(user_id=user_id).order_by(QuestionnaireData.submitted_at.desc()).limit(3).all()
+    
+    # Format recent scores
+    formatted_recent_scores = []
+    for score in recent_scores:
+        score_data = score.data
+        if isinstance(score_data, dict) and 'greenScore' in score_data:
+            formatted_recent_scores.append({
+                'date': score.submitted_at.isoformat(),
+                'greenScore': score_data.get('greenScore', 0),
+                'carbonScore': score_data.get('carbonScore', 0),
+                'waterScore': score_data.get('waterScore', 0),
+                'wasteScore': score_data.get('wasteScore', 0),
+                'totalCarbon': score_data.get('totalCarbon', 0)
+            })
+    
+    # Return the dashboard data with recent scores
+    dashboard_data = latest_data.data
+    
+    return jsonify({'dashboard': dashboard_data, 'recentScores': formatted_recent_scores})
 
 @app.cli.command('init-db')
 def init_db():

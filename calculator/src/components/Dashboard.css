@@ -826,3 +826,318 @@
     padding: 12px;
   }
 } 
+
+.welcome-section {
+  background: white;
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.welcome-section h2 {
+  color: #222;
+  font-size: 28px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.welcome-section p {
+  color: #666;
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 0 0 24px 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.primary-action-btn {
+  background: linear-gradient(90deg, #8BC34A 0%, #4CAF50 100%);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 32px;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Poppins', sans-serif;
+  box-shadow: 0 4px 16px rgba(76,175,80,0.18);
+}
+
+.primary-action-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(76,175,80,0.22);
+}
+
+.environmental-facts {
+  background: white;
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+}
+
+.environmental-facts h2 {
+  color: #222;
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0 0 24px 0;
+  font-family: 'Poppins', sans-serif;
+  text-align: center;
+}
+
+.facts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+}
+
+.fact-card {
+  background: #f8f9fa;
+  border-radius: 16px;
+  padding: 24px;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-left: 4px solid #8BC34A;
+}
+
+.fact-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+}
+
+.fact-icon {
+  font-size: 32px;
+  color: #8BC34A;
+  margin-bottom: 16px;
+}
+
+.fact-card h3 {
+  color: #222;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.fact-card p {
+  color: #666;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.recent-scores-section {
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  margin-bottom: 24px;
+}
+
+.recent-scores-section h2 {
+  color: #222;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 20px 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.recent-scores-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.recent-score-card {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-left: 4px solid #8BC34A;
+}
+
+.recent-score-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+}
+
+.score-date {
+  color: #666;
+  font-size: 12px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.recent-score-card .score-value {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.score-breakdown {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  font-size: 12px;
+  color: #666;
+  font-family: 'Poppins', sans-serif;
+}
+
+.score-breakdown span {
+  background: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-weight: 500;
+}
+
+.no-recommendations {
+  text-align: center;
+  padding: 32px;
+  color: #666;
+  font-family: 'Poppins', sans-serif;
+}
+
+.no-recommendations p {
+  font-size: 16px;
+  margin: 0;
+}
+
+/* Responsive design for new sections */
+@media (max-width: 768px) {
+  .welcome-section {
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  
+  .welcome-section h2 {
+    font-size: 24px;
+  }
+  
+  .welcome-section p {
+    font-size: 14px;
+  }
+  
+  .primary-action-btn {
+    padding: 12px 24px;
+    font-size: 16px;
+  }
+  
+  .environmental-facts {
+    padding: 24px;
+  }
+  
+  .environmental-facts h2 {
+    font-size: 20px;
+  }
+  
+  .facts-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .fact-card {
+    padding: 20px;
+  }
+  
+  .fact-icon {
+    font-size: 28px;
+  }
+  
+  .fact-card h3 {
+    font-size: 16px;
+  }
+  
+  .fact-card p {
+    font-size: 13px;
+  }
+  
+  .recent-scores-section {
+    padding: 20px;
+  }
+  
+  .recent-scores-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .recent-score-card {
+    padding: 16px;
+  }
+  
+  .recent-score-card .score-value {
+    font-size: 20px;
+  }
+  
+  .score-breakdown {
+    gap: 8px;
+  }
+  
+  .score-breakdown span {
+    padding: 2px 6px;
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 480px) {
+  .welcome-section {
+    padding: 20px;
+  }
+  
+  .welcome-section h2 {
+    font-size: 20px;
+  }
+  
+  .welcome-section p {
+    font-size: 13px;
+  }
+  
+  .primary-action-btn {
+    padding: 10px 20px;
+    font-size: 14px;
+  }
+  
+  .environmental-facts {
+    padding: 20px;
+  }
+  
+  .environmental-facts h2 {
+    font-size: 18px;
+  }
+  
+  .fact-card {
+    padding: 16px;
+  }
+  
+  .fact-icon {
+    font-size: 24px;
+  }
+  
+  .fact-card h3 {
+    font-size: 14px;
+  }
+  
+  .fact-card p {
+    font-size: 12px;
+  }
+  
+  .recent-scores-section {
+    padding: 16px;
+  }
+  
+  .recent-score-card {
+    padding: 12px;
+  }
+  
+  .recent-score-card .score-value {
+    font-size: 18px;
+  }
+} 

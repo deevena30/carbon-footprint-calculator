@@ -13,8 +13,6 @@ import { useNavigate } from 'react-router-dom';
 // import I3 from './assets/3.png';
 // import I4 from './assets/4.png';
 
-<pre>{JSON.stringify(dashboardData, null, 2)}</pre>
-
 function DivBox({ left, top, children }) {
   return (
     <div style={{
@@ -38,9 +36,7 @@ function AddImg({ imgg, left, top, children }) {
       left: `${left}px`,
       width: '490px',
       height: '330px',
-    }}>
-      {children}
-    </img>
+    }} alt="" />
   );
 }
 
@@ -418,69 +414,140 @@ function ScorePill({ label, value, color, icon }) {
 
 function ResultPage() {
   const navigate = useNavigate();
-  const [dashboardData, setDashboardData] = useState(null);
+  const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
+    const calculateAndSetResults = async () => {
       setLoading(true);
       setError(null);
       try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          setError('You must be logged in to view results.');
+        // Get form data from localStorage or URL params
+        const formData = localStorage.getItem('questionnaireData');
+        if (!formData) {
+          setError('No questionnaire data found. Please complete the questionnaire first.');
           setLoading(false);
           return;
         }
-        const response = await fetch('http://localhost:5000/api/dashboard', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`
+
+        const parsedFormData = JSON.parse(formData);
+        console.log('Parsed form data:', parsedFormData);
+        
+        // Ensure all required fields are present
+        const sanitizedFormData = {
+          hostelNo: parsedFormData.hostelNo || 1,
+          credits: parsedFormData.credits || 0,
+          timeLabs: parsedFormData.timeLabs || 0,
+          timeLibrary: parsedFormData.timeLibrary || 0,
+          timeGymkhana: parsedFormData.timeGymkhana || 0,
+          dietType: parsedFormData.dietType || 'Vegan',
+          foodOrders: parsedFormData.foodOrders || 0,
+          autoRides: parsedFormData.autoRides || 0,
+          outingsMonth: parsedFormData.outingsMonth || 0,
+          eatOutMonth: parsedFormData.eatOutMonth || 0,
+          partyingMonth: parsedFormData.partyingMonth || 0,
+          shoppingMonth: parsedFormData.shoppingMonth || 0,
+          outingType: parsedFormData.outingType || 'South Bombay+Cab+meal',
+          showers: parsedFormData.showers || 0,
+          bathDuration: parsedFormData.bathDuration || 1,
+          ecommerce: parsedFormData.ecommerce || 0
+        };
+        
+        console.log('Sanitized form data:', sanitizedFormData);
+        
+        // Calculate results using the calculateResults function
+        let calculatedResults;
+        try {
+          calculatedResults = calculateResults(sanitizedFormData);
+          console.log('Calculated results:', calculatedResults);
+        } catch (calcError) {
+          console.error('Error in calculateResults:', calcError);
+          setError('Failed to calculate results. Please try again.');
+          setLoading(false);
+          return;
+        }
+        
+        // Generate recommendations
+        let recommendations;
+        try {
+          recommendations = generateRecommendations(sanitizedFormData, calculatedResults);
+          console.log('Generated recommendations:', recommendations);
+        } catch (recError) {
+          console.error('Error in generateRecommendations:', recError);
+          recommendations = [];
+        }
+        
+        // Combine results and recommendations
+        const finalResults = {
+          ...calculatedResults,
+          recommendations: recommendations
+        };
+        
+        console.log('Final results:', finalResults);
+        setResults(finalResults);
+
+        // Save results to backend
+        try {
+          const token = localStorage.getItem('token');
+          if (token) {
+            const response = await fetch('http://localhost:5000/api/data', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify(finalResults)
+            });
+            
+            if (!response.ok) {
+              console.error('Failed to save results to backend');
+            } else {
+              console.log('Results saved to backend successfully');
+            }
           }
-        });
-        const data = await response.json();
-        if (!response.ok) {
-          setError(data.msg || 'Failed to load results');
-          setLoading(false);
-          return;
+        } catch (saveError) {
+          console.error('Error saving results to backend:', saveError);
         }
-        setDashboardData(data.dashboard);
+        
       } catch (err) {
-        setError('Failed to load results');
+        console.error('Error calculating results:', err);
+        setError('Failed to calculate results. Please try again.');
       } finally {
         setLoading(false);
       }
     };
-    fetchDashboardData();
+    
+    calculateAndSetResults();
   }, []);
 
   if (loading) {
-    return <div style={{ textAlign: 'center', marginTop: 40 }}>Loading your results...</div>;
+    return <div style={{ textAlign: 'center', marginTop: 40, padding: '20px' }}>Loading your results...</div>;
   }
   if (error) {
-    return <div style={{ textAlign: 'center', marginTop: 40, color: 'red' }}>{error}</div>;
+    return <div style={{ textAlign: 'center', marginTop: 40, color: 'red', padding: '20px' }}>{error}</div>;
   }
-  if (!dashboardData) {
-    return <div style={{ textAlign: 'center', marginTop: 40 }}>No results found.</div>;
+  if (!results) {
+    return <div style={{ textAlign: 'center', marginTop: 40, padding: '20px' }}>No results found. Please complete the questionnaire first.</div>;
   }
 
   // Debug print
   // Remove this after confirming data structure
-  // <pre>{JSON.stringify(dashboardData, null, 2)}</pre>
+  // <pre>{JSON.stringify(results, null, 2)}</pre>
 
-  const results = dashboardData;
-  const recommendations = dashboardData.recommendations || [];
+  const recommendations = results.recommendations || [];
 
   return (
-    <div style={{ position: 'relative', minHeight: '100vh' }}>
-      <div className="bg-overlay" style={{ borderRadius: 32, background: 'rgba(255,255,255,0.97)', boxShadow: '0 8px 32px rgba(139,195,74,0.10)' }}>
+    <div style={{ position: 'relative', minHeight: '100vh', padding: '20px' }}>
+      <div className="bg-overlay" style={{ borderRadius: 32, background: 'rgba(255,255,255,0.97)', boxShadow: '0 8px 32px rgba(139,195,74,0.10)', padding: '32px' }}>
         <img src={logo} alt="Logo" className="logo-small" />
         {/* Green Score Highlight */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 32 }}>
-          <div style={{ fontSize: 20, fontWeight: 600, color: GREEN_DARK, marginBottom: 8 }}>Your Green Score</div>
+          <div style={{ fontSize: 20, fontWeight: 600, color: GREEN_DARK, marginBottom: 8 }}>Your Carbon Score</div>
           <div style={{
-            background: 'linear-gradient(90deg, #8BC34A 0%, #4CAF50 100%)',
+            background: results.greenScore >= 8 ? 'linear-gradient(90deg, #10b981 0%, #059669 100%)' : 
+                       results.greenScore >= 5 ? 'linear-gradient(90deg, #f59e0b 0%, #d97706 100%)' : 
+                       'linear-gradient(90deg, #ef4444 0%, #dc2626 100%)',
             color: '#fff',
             borderRadius: '50%',
             width: 140,
@@ -495,14 +562,34 @@ function ResultPage() {
             border: '6px solid #fff',
             position: 'relative',
           }}>
-            <span style={{ zIndex: 1 }}>{results.greenScore}</span>
+            <span style={{ zIndex: 1 }}>{results.greenScore || '0.0'}</span>
+          </div>
+          <div style={{ fontSize: 16, color: '#666', textAlign: 'center' }}>
+            {results.greenScore >= 8 ? 'Excellent! Keep up the great work!' : 
+             results.greenScore >= 5 ? 'Moderate. There\'s room for improvement.' : 
+             'Needs improvement. Check out the recommendations below.'}
           </div>
         </div>
         {/* Subscores */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: 24, marginBottom: 36, flexWrap: 'wrap' }}>
-          <ScorePill label="Carbon Score" value={results.carbonScore} color="#E8F5E9" icon={<FaLeaf color="#388E3C" />} />
-          <ScorePill label="Water Score" value={results.waterScore} color="#E3F2FD" icon={<FaTint color="#039BE5" />} />
-          <ScorePill label="Waste Score" value={results.wasteScore} color="#FFFDE7" icon={<FaRecycle color="#FBC02D" />} />
+          <ScorePill 
+            label="Carbon Score" 
+            value={results.carbonScore || '0.0'} 
+            color={results.carbonScore >= 8 ? "#dcfce7" : results.carbonScore >= 5 ? "#fef3c7" : "#fee2e2"} 
+            icon={<FaLeaf color={results.carbonScore >= 8 ? "#16a34a" : results.carbonScore >= 5 ? "#d97706" : "#dc2626"} />} 
+          />
+          <ScorePill 
+            label="Water Score" 
+            value={results.waterScore || '0.0'} 
+            color={results.waterScore >= 8 ? "#dbeafe" : results.waterScore >= 5 ? "#fef3c7" : "#fee2e2"} 
+            icon={<FaTint color={results.waterScore >= 8 ? "#2563eb" : results.waterScore >= 5 ? "#d97706" : "#dc2626"} />} 
+          />
+          <ScorePill 
+            label="Waste Score" 
+            value={results.wasteScore || '0.0'} 
+            color={results.wasteScore >= 8 ? "#fef3c7" : results.wasteScore >= 5 ? "#fef3c7" : "#fee2e2"} 
+            icon={<FaRecycle color={results.wasteScore >= 8 ? "#f59e0b" : results.wasteScore >= 5 ? "#d97706" : "#dc2626"} />} 
+          />
         </div>
         {/* Details Section */}
         <div style={{ marginBottom: 16 }}>
@@ -514,13 +601,13 @@ function ResultPage() {
                   <td style={{ padding: '12px 16px', borderRadius: '16px 0 0 0' }}>Metric</td>
                   <td style={{ padding: '12px 16px', borderRadius: '0 16px 0 0' }}>Value</td>
                 </tr>
-                <tr><td style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}><FaBolt color="#8BC34A" />Electricity Used</td><td style={{ padding: '10px 16px' }}>{results.electricity} kWh/day</td></tr>
-                <tr><td style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}><FaCloud color="#607D8B" />Scope-2 Emissions</td><td style={{ padding: '10px 16px' }}>{results.scope2} kgCO₂e/day</td></tr>
-                <tr><td style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}><FaCloud color="#90A4AE" />Scope-3 Emissions</td><td style={{ padding: '10px 16px' }}>{results.scope3} kgCO₂e/day</td></tr>
-                <tr><td style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}><FaWalking color="#4CAF50" />Outing Emissions</td><td style={{ padding: '10px 16px' }}>{results.outings} kgCO₂e/day</td></tr>
-                <tr><td style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}><FaLeaf color="#388E3C" />Total Carbon Footprint</td><td style={{ padding: '10px 16px' }}>{results.totalCarbon} kgCO₂e/day</td></tr>
-                <tr><td style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}><FaWater color="#039BE5" />Water Usage</td><td style={{ padding: '10px 16px' }}>{results.water} L/day</td></tr>
-                <tr><td style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}><FaTrash color="#FBC02D" />Waste Generation</td><td style={{ padding: '10px 16px' }}>{results.waste} kg/day</td></tr>
+                <tr><td style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}><FaBolt color="#8BC34A" />Electricity Used</td><td style={{ padding: '10px 16px' }}>{results.electricity || '0.0'} kWh/day</td></tr>
+                <tr><td style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}><FaCloud color="#607D8B" />Scope-2 Emissions</td><td style={{ padding: '10px 16px' }}>{results.scope2 || '0.0'} kgCO₂e/day</td></tr>
+                <tr><td style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}><FaCloud color="#90A4AE" />Scope-3 Emissions</td><td style={{ padding: '10px 16px' }}>{results.scope3 || '0.0'} kgCO₂e/day</td></tr>
+                <tr><td style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}><FaWalking color="#4CAF50" />Outing Emissions</td><td style={{ padding: '10px 16px' }}>{results.outings || '0.0'} kgCO₂e/day</td></tr>
+                <tr><td style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}><FaLeaf color="#388E3C" />Total Carbon Footprint</td><td style={{ padding: '10px 16px' }}>{results.totalCarbon || '0.0'} kgCO₂e/day</td></tr>
+                <tr><td style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}><FaWater color="#039BE5" />Water Usage</td><td style={{ padding: '10px 16px' }}>{results.water || '0.0'} L/day</td></tr>
+                <tr><td style={{ padding: '10px 16px', display: 'flex', alignItems: 'center', gap: 8 }}><FaTrash color="#FBC02D" />Waste Generation</td><td style={{ padding: '10px 16px' }}>{results.waste || '0.0'} kg/day</td></tr>
               </tbody>
             </table>
           </div>
@@ -528,12 +615,16 @@ function ResultPage() {
         {/* Recommendations Section */}
         <div style={{ marginTop: 32, marginBottom: 32 }}>
           <div style={{ fontSize: 22, fontWeight: 700, color: GREEN_DARK, marginBottom: 12 }}>Personalized Recommendations</div>
-          {recommendations.map((recommendation, index) => (
-            <RecommendationCard key={index} recommendation={recommendation} />
-          ))}
+          {recommendations && recommendations.length > 0 ? (
+            recommendations.map((recommendation, index) => (
+              <RecommendationCard key={index} recommendation={recommendation} />
+            ))
+          ) : (
+            <div style={{ textAlign: 'center', color: '#666', padding: '20px' }}>No recommendations available.</div>
+          )}
         </div>
         <div style={{ fontSize: 16, color: '#666', marginTop: 24, textAlign: 'center' }}>
-          <b>What does this mean?</b> The Green Score is an average of your Carbon, Water, and Waste scores. Higher is better! Each score is based on your daily habits and resource usage.
+          <b>What does this mean?</b> The Carbon Score is an average of your Carbon, Water, and Waste scores. Higher scores (8-10) indicate excellent environmental practices, moderate scores (5-7) show room for improvement, and lower scores (1-4) suggest significant changes are needed.
         </div>
         {/* Action Buttons */}
         <div style={{ display: 'flex', justifyContent: 'center', gap: 16, marginTop: 40 }}>

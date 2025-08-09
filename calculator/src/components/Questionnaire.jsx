@@ -24,7 +24,9 @@ import './Questionnaire.css';
 const Questionnaire = () => {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState({
+  
+  // Initial form data
+  const initialFormData = {
     // Energy/College Questions
     hostelNo: 1,
     credits: 0,
@@ -51,10 +53,21 @@ const Questionnaire = () => {
     
     // Responsibility checkbox
     isResponsible: false
-  });
+  };
   
+  const [formData, setFormData] = useState(initialFormData);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Reset form when component mounts and clear any previous questionnaire data
+  useEffect(() => {
+    // Clear any previous questionnaire data from localStorage
+    localStorage.removeItem('questionnaireData');
+    // Reset form to initial state
+    setFormData(initialFormData);
+    setCurrentStep(0);
+    setErrors({});
+  }, []); // Empty dependency array means this runs only on mount
 
   const steps = [
     {
@@ -161,80 +174,10 @@ const Questionnaire = () => {
         return;
       }
 
-      // --- Calculate dashboard data here (replace with your real logic) ---
-      // Example mock calculation:
-      const dashboardData = {
-        totalEmissions: 8.5, // Replace with your calculation
-        score: 75, // Replace with your calculation
-        categoryBreakdown: {
-          energy: 3.2,
-          transportation: 2.8,
-          food: 1.5,
-          waste: 0.5,
-          water: 0.3,
-          shopping: 0.2
-        },
-        recommendations: [
-          {
-            id: 1,
-            category: 'Energy',
-            title: 'Switch to LED bulbs',
-            description: 'Replace incandescent bulbs with LED bulbs to reduce energy consumption by up to 80%.',
-            impact: 'High',
-            difficulty: 'Easy',
-            potentialSavings: 0.8
-          },
-          {
-            id: 2,
-            category: 'Transportation',
-            title: 'Use public transport more',
-            description: 'Take public transportation 2 more days per week to reduce your carbon footprint.',
-            impact: 'Medium',
-            difficulty: 'Medium',
-            potentialSavings: 0.5
-          }
-        ],
-        trends: {
-          monthly: [8.2, 8.0, 7.8, 7.5, 7.2, 8.5],
-          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
-        }
-      };
-      // --- End calculation ---
-
-      const response = await fetch('http://localhost:5000/api/data', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(dashboardData)
-      });
-      const data = await response.json();
-      if (!response.ok) {
-        setErrors({ general: data.msg || 'Failed to submit questionnaire.' });
-        setIsLoading(false);
-        return;
-      }
-      localStorage.removeItem('questionnaireData');
-      setFormData({
-        hostelNo: 1,
-        credits: 0,
-        timeLabs: 0,
-        timeLibrary: 0,
-        timeGymkhana: 0,
-        dietType: 'Vegan',
-        foodOrders: 0,
-        outingsMonth: 0,
-        eatOutMonth: 0,
-        partyingMonth: 0,
-        shoppingMonth: 0,
-        outingType: 'South Bombay+Cab+meal',
-        autoRides: 0,
-        ecommerce: 0,
-        showers: 0,
-        bathDuration: 1,
-        isResponsible: false
-      });
+      // Save the form data to localStorage for the results page
+      localStorage.setItem('questionnaireData', JSON.stringify(formData));
+      
+      // Navigate to results page
       navigate('/results');
     } catch (error) {
       console.error('Questionnaire submission error:', error);
