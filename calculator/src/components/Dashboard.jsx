@@ -383,39 +383,7 @@ const Dashboard = () => {
 
 
 
-        {/* Notifications Section */}
-        {notifications && notifications.length > 0 && (
-          <div className="notifications-section">
-            <h2>🔔 Notifications ({notifications.length})</h2>
-            <div className="notifications-list">
-              {notifications.map((notification, index) => (
-                <div key={index} className={`notification-card ${notification.priority}`}>
-                  <div className="notification-header">
-                    <h3>{notification.title}</h3>
-                    <span className={`priority-badge ${notification.priority}`}>
-                      {notification.priority}
-                    </span>
-                  </div>
-                  <p>{notification.message}</p>
-                  <div className="notification-actions">
-                    <button 
-                      className="notification-action-btn"
-                      onClick={() => {
-                        if (notification.action === 'Take Assessment' || notification.action === 'Start Assessment') {
-                          handleCalculateScore();
-                        } else if (notification.action === 'View Progress') {
-                          handleViewResults();
-                        }
-                      }}
-                    >
-                      {notification.action}
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+
 
         {/* Top Users Leaderboard */}
         <div className="top-users-section">
@@ -446,6 +414,7 @@ const Dashboard = () => {
             </div>
           )}
         </div>
+        
 
         {/* Recent Scores Section */}
         {recentScores && recentScores.length > 0 && (
@@ -462,6 +431,39 @@ const Dashboard = () => {
                     <span>C: {score.carbonScore}</span>
                     <span>W: {score.waterScore}</span>
                     <span>W: {score.wasteScore}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+                {/* Notifications Section */}
+                {notifications && notifications.length > 0 && (
+          <div className="notifications-section">
+            <h2>🔔 Notifications ({notifications.length})</h2>
+            <div className="notifications-list">
+              {notifications.map((notification, index) => (
+                <div key={index} className={`notification-card ${notification.priority}`}>
+                  <div className="notification-header">
+                    <h3>{notification.title}</h3>
+                    <span className={`priority-badge ${notification.priority}`}>
+                      {notification.priority}
+                    </span>
+                  </div>
+                  <p>{notification.message}</p>
+                  <div className="notification-actions">
+                    <button 
+                      className="notification-action-btn"
+                      onClick={() => {
+                        if (notification.action === 'Take Assessment' || notification.action === 'Start Assessment') {
+                          handleCalculateScore();
+                        } else if (notification.action === 'View Progress') {
+                          handleViewResults();
+                        }
+                      }}
+                    >
+                      {notification.action}
+                    </button>
                   </div>
                 </div>
               ))}
