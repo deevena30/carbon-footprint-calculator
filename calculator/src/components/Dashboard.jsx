@@ -30,6 +30,7 @@ const Dashboard = () => {
   const [user, setUser] = useState(null);
   const [carbonData, setCarbonData] = useState(null);
   const [recentScores, setRecentScores] = useState([]);
+  const [topUsers, setTopUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -98,19 +99,11 @@ const Dashboard = () => {
       }
       
       setCarbonData(data.dashboard);
-      // Filter out duplicate scores (same greenScore, carbonScore, waterScore, wasteScore)
-      const uniqueScores = [];
-      const seenScores = new Set();
+      // Backend now handles excluding current score and duplicates
+      setRecentScores(data.recentScores || []);
       
-      (data.recentScores || []).forEach(score => {
-        const scoreKey = `${score.greenScore}-${score.carbonScore}-${score.waterScore}-${score.wasteScore}`;
-        if (!seenScores.has(scoreKey)) {
-          seenScores.add(scoreKey);
-          uniqueScores.push(score);
-        }
-      });
-      
-      setRecentScores(uniqueScores);
+      // Fetch top users
+      await fetchTopUsers();
     } catch (error) {
       console.error('Error fetching carbon data:', error);
       // If backend is not running, show new user experience
@@ -123,6 +116,32 @@ const Dashboard = () => {
       }
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchTopUsers = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      
+      console.log('Fetching top users...');
+      const response = await fetch('http://localhost:5000/api/top-users', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      console.log('Top users response status:', response.status);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Top users data:', data);
+        setTopUsers(data.topUsers || []);
+      } else {
+        console.error('Failed to fetch top users:', response.status, response.statusText);
+      }
+    } catch (error) {
+      console.error('Error fetching top users:', error);
     }
   };
 
@@ -186,7 +205,7 @@ const Dashboard = () => {
   ];
 
   // Simple test to ensure component renders
-  console.log('Dashboard component rendering, state:', { isLoading, error, carbonData, user });
+  console.log('Dashboard component rendering, state:', { isLoading, error, carbonData, user, topUsers });
 
   if (isLoading) {
     return (
@@ -303,6 +322,36 @@ const Dashboard = () => {
               <p>{getScoreText(carbonData?.greenScore || 0)}</p>
             </div>
           </div>
+        </div>
+
+        {/* Top Users Leaderboard */}
+        <div className="top-users-section">
+          <h2>🏆 Top 10 Users Leaderboard</h2>
+          {topUsers && topUsers.length > 0 ? (
+            <div className="leaderboard">
+              {topUsers.map((leaderboardUser, index) => (
+                <div key={index} className={`leaderboard-item ${leaderboardUser.username === (user?.username || user?.email) ? 'current-user' : ''}`}>
+                  <div className="rank">
+                    {index === 0 && '🥇'}
+                    {index === 1 && '🥈'}
+                    {index === 2 && '🥉'}
+                    {index > 2 && `#${index + 1}`}
+                  </div>
+                  <div className="user-info">
+                    <span className="username">{leaderboardUser.username}</span>
+                    {leaderboardUser.username === (user?.username || user?.email) && <span className="current-user-badge">You</span>}
+                  </div>
+                  <div className="score" style={{ color: getScoreColor(leaderboardUser.greenScore) }}>
+                    {leaderboardUser.greenScore}/10
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="no-top-users">
+              <p>No users have completed assessments yet. Be the first to calculate your carbon footprint!</p>
+            </div>
+          )}
         </div>
 
         {/* Recent Scores Section */}
