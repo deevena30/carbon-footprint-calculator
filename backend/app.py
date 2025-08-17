@@ -11,14 +11,15 @@ from flask_cors import CORS
 from flask_jwt_extended import create_access_token
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import QuestionnaireData
-from datetime import datetime
+from datetime import datetime, timedelta
+import json
 
 app = Flask(__name__)
 CORS(app)
 
 # Configurations
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'postgresql://postgres:suscell@localhost:5433/carbon_footprint')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'postgresql://postgres:suscell@localhost:5432/carbon_footprint')
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'super-secret-key')
 db.init_app(app)
 bcrypt.init_app(app)
@@ -177,6 +178,95 @@ def get_top_users():
     except Exception as e:
         print(f"Error in get_top_users: {e}")
         return jsonify({'topUsers': [], 'error': str(e)}), 500
+
+@app.route('/api/delete-account', methods=['DELETE'])
+@jwt_required()
+def delete_account():
+    try:
+        user_id = get_jwt_identity()
+        user = User.query.get(user_id)
+        
+        if not user:
+            return jsonify({'msg': 'User not found'}), 404
+        
+        # Delete all questionnaire data for this user
+        QuestionnaireData.query.filter_by(user_id=user_id).delete()
+        
+        # Delete the user
+        db.session.delete(user)
+        db.session.commit()
+        
+        print(f"Account deleted for user: {user.username} (ID: {user_id})")
+        return jsonify({'msg': 'Account deleted successfully'}), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error deleting account: {e}")
+        return jsonify({'error': 'Failed to delete account'}), 500
+
+@app.route('/api/notifications', methods=['GET'])
+@jwt_required()
+def get_notifications():
+    try:
+        user_id = get_jwt_identity()
+        user = User.query.get(user_id)
+        
+        if not user:
+            return jsonify({'msg': 'User not found'}), 404
+        
+        notifications = []
+        
+        # Check if user hasn't taken assessment in 7 days
+        last_assessment = QuestionnaireData.query.filter_by(user_id=user_id).order_by(QuestionnaireData.submitted_at.desc()).first()
+        
+        if last_assessment:
+            days_since_last = (datetime.utcnow() - last_assessment.submitted_at).days
+            
+            if days_since_last >= 7:
+                notifications.append({
+                    'type': 'reminder',
+                    'title': 'Time for a Progress Check! 🌱',
+                    'message': f'Hey {user.username}! It\'s been {days_since_last} days since your last assessment. Let\'s see how much you\'ve improved your carbon footprint!',
+                    'action': 'Take Assessment',
+                    'priority': 'high'
+                })
+        
+        # Check if user is new (registered within 3 days)
+        days_since_registration = (datetime.utcnow() - user.created_at).days
+        if days_since_registration <= 3:
+            notifications.append({
+                'type': 'welcome',
+                'title': 'Welcome to Your Sustainability Journey! 🌍',
+                'message': f'Hi {user.username}! Ready to start tracking your carbon footprint? Take your first assessment to see where you stand!',
+                'action': 'Start Assessment',
+                'priority': 'medium'
+            })
+        
+        # Check if user has improved their score
+        if last_assessment:
+            previous_assessments = QuestionnaireData.query.filter_by(user_id=user_id).order_by(QuestionnaireData.submitted_at.desc()).limit(2).all()
+            
+            if len(previous_assessments) >= 2:
+                current_score = previous_assessments[0].data.get('greenScore', 0)
+                previous_score = previous_assessments[1].data.get('greenScore', 0)
+                
+                if current_score > previous_score:
+                    improvement = current_score - previous_score
+                    notifications.append({
+                        'type': 'achievement',
+                        'title': 'Great Progress! 🎉',
+                        'message': f'Congratulations {user.username}! Your carbon score improved by {improvement:.1f} points! Keep up the amazing work!',
+                        'action': 'View Progress',
+                        'priority': 'high'
+                    })
+        
+        return jsonify({'notifications': notifications, 'count': len(notifications)})
+        
+    except Exception as e:
+        print(f"Error getting notifications: {e}")
+        return jsonify({'notifications': [], 'count': 0})
+
+
 
 @app.route('/api/debug/data', methods=['GET'])
 def debug_data():

@@ -19,7 +19,8 @@ import {
   FaWater,
   FaWind,
   FaSun,
-  FaBolt
+  FaBolt,
+  FaTrash
 } from 'react-icons/fa';
 import './Dashboard.css';
 
@@ -31,6 +32,7 @@ const Dashboard = () => {
   const [carbonData, setCarbonData] = useState(null);
   const [recentScores, setRecentScores] = useState([]);
   const [topUsers, setTopUsers] = useState([]);
+  const [notifications, setNotifications] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -102,8 +104,9 @@ const Dashboard = () => {
       // Backend now handles excluding current score and duplicates
       setRecentScores(data.recentScores || []);
       
-      // Fetch top users
+      // Fetch top users and notifications
       await fetchTopUsers();
+      await fetchNotifications();
     } catch (error) {
       console.error('Error fetching carbon data:', error);
       // If backend is not running, show new user experience
@@ -145,6 +148,32 @@ const Dashboard = () => {
     }
   };
 
+  const fetchNotifications = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      
+      console.log('Fetching notifications...');
+      const response = await fetch('http://localhost:5000/api/notifications', {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      console.log('Notifications response status:', response.status);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Notifications data:', data);
+        setNotifications(data.notifications || []);
+      } else {
+        console.error('Failed to fetch notifications:', response.status, response.statusText);
+      }
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
@@ -161,6 +190,30 @@ const Dashboard = () => {
 
   const handleViewResults = () => {
     navigate('/results');
+  };
+
+  const handleDeleteAccount = async () => {
+    if (window.confirm('Are you sure you want to delete your account? This action cannot be undone and will permanently remove all your data.')) {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await fetch('http://localhost:5000/api/delete-account', {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        if (response.ok) {
+          alert('Account deleted successfully');
+          handleLogout();
+        } else {
+          alert('Failed to delete account');
+        }
+      } catch (error) {
+        console.error('Error deleting account:', error);
+        alert('Failed to delete account');
+      }
+    }
   };
 
   const getScoreColor = (score) => {
@@ -301,6 +354,9 @@ const Dashboard = () => {
             <button className="logout-button" onClick={handleLogout}>
               <FaSignOutAlt /> Logout
             </button>
+            <button className="delete-account-button" onClick={handleDeleteAccount}>
+              <FaTrash /> Delete Account
+            </button>
           </div>
         </div>
       </div>
@@ -323,6 +379,42 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+
+
+
+        {/* Notifications Section */}
+        {notifications && notifications.length > 0 && (
+          <div className="notifications-section">
+            <h2>🔔 Notifications ({notifications.length})</h2>
+            <div className="notifications-list">
+              {notifications.map((notification, index) => (
+                <div key={index} className={`notification-card ${notification.priority}`}>
+                  <div className="notification-header">
+                    <h3>{notification.title}</h3>
+                    <span className={`priority-badge ${notification.priority}`}>
+                      {notification.priority}
+                    </span>
+                  </div>
+                  <p>{notification.message}</p>
+                  <div className="notification-actions">
+                    <button 
+                      className="notification-action-btn"
+                      onClick={() => {
+                        if (notification.action === 'Take Assessment' || notification.action === 'Start Assessment') {
+                          handleCalculateScore();
+                        } else if (notification.action === 'View Progress') {
+                          handleViewResults();
+                        }
+                      }}
+                    >
+                      {notification.action}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Top Users Leaderboard */}
         <div className="top-users-section">

@@ -146,6 +146,128 @@
   border-color: #adb5bd;
 }
 
+.delete-account-button {
+  background: #dc3545;
+  color: white;
+  border: 2px solid #dc3545;
+}
+
+.delete-account-button:hover {
+  background: #c82333;
+  border-color: #c82333;
+}
+
+/* Notifications Section */
+.notifications-section {
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  margin-bottom: 24px;
+}
+
+.notifications-section h2 {
+  color: #222;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 20px 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.notification-card {
+  padding: 20px;
+  border-radius: 12px;
+  border-left: 4px solid #8BC34A;
+  transition: all 0.3s ease;
+  background: #f8f9fa;
+}
+
+.notification-card.high {
+  border-left-color: #dc3545;
+  background: #fff5f5;
+}
+
+.notification-card.medium {
+  border-left-color: #ffc107;
+  background: #fffbf0;
+}
+
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  gap: 12px;
+}
+
+.notification-header h3 {
+  color: #222;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+  flex: 1;
+}
+
+.priority-badge {
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-family: 'Poppins', sans-serif;
+  white-space: nowrap;
+}
+
+.priority-badge.high {
+  background: #dc3545;
+  color: white;
+}
+
+.priority-badge.medium {
+  background: #ffc107;
+  color: #222;
+}
+
+.notification-card p {
+  color: #666;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 0 0 16px 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.notification-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.notification-action-btn {
+  padding: 8px 16px;
+  background: #8BC34A;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Poppins', sans-serif;
+}
+
+.notification-action-btn:hover {
+  background: #4CAF50;
+  transform: translateY(-1px);
+}
+
+
+
 .dashboard-content {
   display: flex;
   flex-direction: column;
