@@ -6,7 +6,7 @@ const config = {
   },
   // Production - Update this with your Railway URL
   production: {
-    apiUrl: 'https://your-actual-railway-url.railway.app'
+    apiUrl: 'https://your-railway-backend-url.railway.app'
   }
 };
 
