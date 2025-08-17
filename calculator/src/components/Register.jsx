@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { API_BASE_URL } from '../config';
 import './Register.css';
 
 const Register = () => {
@@ -74,7 +75,7 @@ const Register = () => {
 
     try {
       // Call backend API
-      const response = await fetch('http://localhost:5000/api/register', {
+      const response = await fetch(`${API_BASE_URL}/api/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

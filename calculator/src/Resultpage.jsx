@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import logo from './assets/logo.png';
 import { FaLeaf, FaTint, FaRecycle, FaTrophy, FaBolt, FaCloud, FaWalking, FaWater, FaTrash } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
+import { API_BASE_URL } from './config';
 // import Text3 from './assets/Group 1384.png';
 // import Earth from './assets/image 3.png';
 // import Halfearth from './assets/image 11.png';
@@ -492,7 +493,7 @@ function ResultPage() {
         try {
           const token = localStorage.getItem('token');
           if (token) {
-            const response = await fetch('http://localhost:5000/api/data', {
+            const response = await fetch(`${API_BASE_URL}/api/data`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

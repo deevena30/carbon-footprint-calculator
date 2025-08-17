@@ -22,6 +22,7 @@ import {
   FaBolt,
   FaTrash
 } from 'react-icons/fa';
+import { API_BASE_URL } from '../config';
 import './Dashboard.css';
 
 const Dashboard = () => {
@@ -76,7 +77,7 @@ const Dashboard = () => {
       }
       
       console.log('Fetching dashboard data...');
-      const response = await fetch('http://localhost:5000/api/dashboard', {
+      const response = await fetch(`${API_BASE_URL}/api/dashboard`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -128,7 +129,7 @@ const Dashboard = () => {
       if (!token) return;
       
       console.log('Fetching top users...');
-      const response = await fetch('http://localhost:5000/api/top-users', {
+      const response = await fetch(`${API_BASE_URL}/api/top-users`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -154,7 +155,7 @@ const Dashboard = () => {
       if (!token) return;
       
       console.log('Fetching notifications...');
-      const response = await fetch('http://localhost:5000/api/notifications', {
+      const response = await fetch(`${API_BASE_URL}/api/notifications`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -196,7 +197,7 @@ const Dashboard = () => {
     if (window.confirm('Are you sure you want to delete your account? This action cannot be undone and will permanently remove all your data.')) {
       try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5000/api/delete-account', {
+        const response = await fetch(`${API_BASE_URL}/api/delete-account`, {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`
