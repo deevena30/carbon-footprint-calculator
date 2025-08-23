@@ -306,6 +306,37 @@ def debug_data():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/export/all', methods=['GET'])
+@jwt_required()
+def export_all_data():
+    try:
+        # Get all users
+        users = User.query.all()
+        export_data = []
+        for user in users:
+            user_info = {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email,
+                'created_at': user.created_at.isoformat() if user.created_at else None,
+                'questionnaires': []
+            }
+            # Get all questionnaire data for this user
+            questionnaires = QuestionnaireData.query.filter_by(user_id=user.id).order_by(QuestionnaireData.submitted_at.desc()).all()
+            for q in questionnaires:
+                user_info['questionnaires'].append({
+                    'id': q.id,
+                    'submitted_at': q.submitted_at.isoformat() if q.submitted_at else None,
+                    'data': q.data  # contains all scores and answers
+                })
+            export_data.append(user_info)
+        # Write to file
+        with open('all_data_export.json', 'w') as f:
+            json.dump(export_data, f, indent=2)
+        return jsonify({'msg': 'All data exported to all_data_export.json', 'user_count': len(users)})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.cli.command('init-db')
 def init_db():
     db.create_all()
