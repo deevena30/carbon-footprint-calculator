@@ -1,0 +1,18 @@
+# filepath: backend/render.yaml
+services:
+  - type: web
+    name: carbon-footprint-backend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: carbon-footprint-db
+          property: connectionString
+      - key: JWT_SECRET_KEY
+        value: your-secret-key
+databases:
+  - name: carbon-footprint-db
+    plan: free
+    ipAllowList: []
