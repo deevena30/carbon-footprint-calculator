@@ -13,6 +13,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import QuestionnaireData
 from datetime import datetime, timedelta
 import json
+import csv
 
 app = Flask(__name__)
 CORS(app)
@@ -308,39 +309,40 @@ def debug_data():
 
 @app.route('/api/export/all', methods=['GET'])
 @jwt_required()
-def export_all_data():
-    try:
-        # Get all users
-        users = User.query.all()
-        export_data = []
+
+
+def export_all_to_csv():
+    users = User.query.all()
+    with open('all_data_export.csv', 'w', newline='', encoding='utf-8') as csvfile:
+        fieldnames = ['user_id', 'username', 'email', 'created_at', 'questionnaire_id', 'submitted_at', 'greenScore', 'carbonScore', 'waterScore', 'wasteScore', 'totalCarbon']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
         for user in users:
-            user_info = {
-                'id': user.id,
-                'username': user.username,
-                'email': user.email,
-                'created_at': user.created_at.isoformat() if user.created_at else None,
-                'questionnaires': []
-            }
-            # Get all questionnaire data for this user
-            questionnaires = QuestionnaireData.query.filter_by(user_id=user.id).order_by(QuestionnaireData.submitted_at.desc()).all()
+            questionnaires = QuestionnaireData.query.filter_by(user_id=user.id).all()
             for q in questionnaires:
-                user_info['questionnaires'].append({
-                    'id': q.id,
-                    'submitted_at': q.submitted_at.isoformat() if q.submitted_at else None,
-                    'data': q.data  # contains all scores and answers
+                data = q.data if isinstance(q.data, dict) else {}
+                writer.writerow({
+                    'user_id': user.id,
+                    'username': user.username,
+                    'email': user.email,
+                    'created_at': user.created_at.isoformat() if user.created_at else '',
+                    'questionnaire_id': q.id,
+                    'submitted_at': q.submitted_at.isoformat() if q.submitted_at else '',
+                    'greenScore': data.get('greenScore', ''),
+                    'carbonScore': data.get('carbonScore', ''),
+                    'waterScore': data.get('waterScore', ''),
+                    'wasteScore': data.get('wasteScore', ''),
+                    'totalCarbon': data.get('totalCarbon', '')
                 })
-            export_data.append(user_info)
-        # Write to file
-        with open('all_data_export.json', 'w') as f:
-            json.dump(export_data, f, indent=2)
-        return jsonify({'msg': 'All data exported to all_data_export.json', 'user_count': len(users)})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    print('Data exported to all_data_export.csv')
 
 @app.cli.command('init-db')
 def init_db():
     db.create_all()
     print('Database tables created.')
+    export_all_to_csv()
 
 if __name__ == '__main__':
+    with app.app_context():
+        export_all_to_csv()
     app.run(debug=True)
