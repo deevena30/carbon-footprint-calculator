@@ -82,6 +82,7 @@ def submit_data():
     db.session.add(qdata)
     db.session.commit()
     print(f"Questionnaire data saved for user {user_id}, score: {data.get('greenScore', 'N/A')}")
+    export_all_to_csv()
     return jsonify({'msg': 'Data submitted successfully'}), 201
 
 @app.route('/api/dashboard', methods=['GET'])
@@ -202,6 +203,7 @@ def delete_account():
         db.session.commit()
         
         print(f"Account deleted for user: {user.username} (ID: {user_id})")
+        export_all_to_csv()
         return jsonify({'msg': 'Account deleted successfully'}), 200
         
     except Exception as e:
@@ -307,10 +309,9 @@ def debug_data():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
+
 @app.route('/api/export/all', methods=['GET'])
-@jwt_required()
-
-
 def export_all_to_csv():
     users = User.query.all()
     with open('all_data_export.csv', 'w', newline='', encoding='utf-8') as csvfile:
@@ -319,8 +320,20 @@ def export_all_to_csv():
         writer.writeheader()
         for user in users:
             questionnaires = QuestionnaireData.query.filter_by(user_id=user.id).all()
+            seen = set()
             for q in questionnaires:
                 data = q.data if isinstance(q.data, dict) else {}
+                key = (
+                    round(q.submitted_at.timestamp()),  # round to nearest second
+                    data.get('greenScore', ''),
+                    data.get('carbonScore', ''),
+                    data.get('waterScore', ''),
+                    data.get('wasteScore', ''),
+                    data.get('totalCarbon', '')
+                )
+                if key in seen:
+                    continue  # skip duplicate
+                seen.add(key)
                 writer.writerow({
                     'user_id': user.id,
                     'username': user.username,
