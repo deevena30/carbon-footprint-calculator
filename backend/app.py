@@ -31,9 +31,6 @@ bcrypt.init_app(app)
 jwt.init_app(app)
 
 # Placeholder for routes and models
-@app.route("/", methods=["GET"])
-def home():
-    return jsonify({"message": "Backend is running!"})
 
 @app.route('/api/register', methods=['POST'])
 def register():
