@@ -370,4 +370,4 @@ def init_db():
 if __name__ == '__main__':
     with app.app_context():
         export_all_to_csv()
-    app.run(debug=True)
+    app.run(debug=False)
