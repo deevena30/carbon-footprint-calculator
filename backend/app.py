@@ -74,7 +74,11 @@ def submit_data():
     data = request.get_json()
     if not data:
         return jsonify({'msg': 'No data provided'}), 400
-    
+    existing = QuestionnaireData.query.filter_by(user_id=user_id).order_by(QuestionnaireData.submitted_at.desc()).first()
+    if existing and isinstance(existing.data, dict):
+        if existing.data.get('greenScore') == data.get('greenScore'):
+            if abs((datetime.utcnow() - existing.submitted_at).total_seconds()) < 2:
+                return jsonify({'msg': 'Duplicate submission ignored'}), 200
     # Add timestamp to the data
     data['submitted_at'] = datetime.utcnow().isoformat()
     
