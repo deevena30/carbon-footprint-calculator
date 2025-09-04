@@ -21,7 +21,7 @@ CORS(app, resources={
     r"/api/*": {
         "origins": [
             "http://localhost:5173",
-            "*"
+            "https://carbon-footprint-calculator-p1km.vercel.app/"
         ],
         "supports_credentials": True
     }
