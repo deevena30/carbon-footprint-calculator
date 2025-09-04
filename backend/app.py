@@ -16,7 +16,7 @@ import json
 import csv
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "https://carbon-footprint-calculator-2p71-dl977rlyo-deevena30s-projects.vercel.app"}},
+CORS(app, resources={r"/api/*": {"origins": "https://carbon-footprint-calculator-2p71.vercel.app/"}},
      supports_credentials=True)
 
 # Configurations
