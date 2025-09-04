@@ -20,6 +20,13 @@ CORS(app, origins=[
     "https://carbon-footprint-calculator-2p71.vercel.app",
     "http://localhost:5000"
 ])
+@app.after_request
+def add_cors_headers(response):
+    response.headers["Access-Control-Allow-Origin"] = "https://carbon-footprint-calculator-2p71.vercel.app"
+    response.headers["Access-Control-Allow-Methods"] = "GET,POST,OPTIONS,DELETE,PUT"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type,Authorization"
+    return response
+
 
 # Configurations
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
