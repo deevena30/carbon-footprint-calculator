@@ -13,18 +13,19 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import QuestionnaireData
 from datetime import datetime, timedelta
 import json
-from cors import cors   
+from flask_cors import CORS  
 import csv
 
 app = Flask(__name__)
-app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://carbon-footprint-calculator-2p71.vercel.app"
-  ],
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true
-}))
+CORS(app, resources={
+    r"/api/*": {
+        "origins": [
+            "http://localhost:5173",
+            "https://carbon-footprint-calculator-2p71.vercel.app"
+        ],
+        "supports_credentials": True
+    }
+})
 # Configurations
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'postgresql://postgres:suscell@localhost:5432/carbon_footprint')
