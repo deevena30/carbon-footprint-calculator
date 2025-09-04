@@ -16,8 +16,10 @@ import json
 import csv
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "https://carbon-footprint-calculator-2p71.vercel.app"}},
-     supports_credentials=True)
+CORS(app, origins=[
+    "https://carbon-footprint-calculator-2p71.vercel.app",
+    "http://localhost:5000"
+])
 
 # Configurations
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
