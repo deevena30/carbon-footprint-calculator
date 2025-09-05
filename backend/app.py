@@ -64,6 +64,25 @@ def index():
 def health_check():
     return jsonify({'status': 'healthy', 'message': 'Backend is running'}), 200
 
+@app.route('/api/auth-test', methods=['GET'])
+@jwt_required()
+def auth_test():
+    try:
+        user_id = get_jwt_identity()
+        user = User.query.get(user_id) if user_id else None
+        return jsonify({
+            'status': 'authenticated',
+            'user_id': user_id,
+            'username': user.username if user else None,
+            'message': 'JWT token is valid'
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': 'JWT token validation failed',
+            'error': str(e)
+        }), 401
+
 @app.route('/api/init-tables', methods=['POST'])
 def init_tables():
     try:
@@ -209,7 +228,17 @@ def submit_data():
 @app.route('/api/dashboard', methods=['GET'])
 @jwt_required()
 def dashboard():
-    user_id = get_jwt_identity()
+    try:
+        user_id = get_jwt_identity()
+        
+        # Validate user_id
+        if not user_id:
+            return jsonify({'msg': 'Invalid or missing authentication token'}), 401
+            
+        # Check if user exists
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'msg': 'User not found'}), 404
     
     # Get the most recent questionnaire data
     latest_data = QuestionnaireData.query.filter_by(user_id=user_id).order_by(QuestionnaireData.submitted_at.desc()).first()
@@ -255,10 +284,26 @@ def dashboard():
     # Exclude the current score (first one) and take up to 3 previous scores
     formatted_recent_scores = formatted_scores[1:4] if len(formatted_scores) > 1 else []
     
-    # Return the dashboard data with recent scores
-    dashboard_data = latest_data.data
-    
-    return jsonify({'dashboard': dashboard_data, 'recentScores': formatted_recent_scores})
+        # Return the dashboard data with recent scores
+        dashboard_data = latest_data.data
+        
+        return jsonify({'dashboard': dashboard_data, 'recentScores': formatted_recent_scores})
+        
+    except Exception as e:
+        print(f"Dashboard error for user {user_id}: {e}")
+        return jsonify({
+            'msg': 'Error loading dashboard',
+            'error': str(e),
+            'dashboard': {
+                'greenScore': 0,
+                'carbonScore': 0,
+                'waterScore': 0, 
+                'wasteScore': 0,
+                'totalCarbon': 0,
+                'isFirstTime': True
+            },
+            'recentScores': []
+        }), 200
 
 @app.route('/api/top-users', methods=['GET'])
 @jwt_required()
