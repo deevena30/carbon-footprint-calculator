@@ -58,22 +58,87 @@ def index():
 def health_check():
     return jsonify({'status': 'healthy', 'message': 'Backend is running'}), 200
 
+@app.route('/api/db-status', methods=['GET'])
+def db_status():
+    try:
+        # Try to connect to database
+        db.session.execute('SELECT 1')
+        db.session.commit()
+        
+        # Check if tables exist
+        try:
+            user_count = User.query.count()
+            questionnaire_count = QuestionnaireData.query.count()
+            return jsonify({
+                'status': 'connected',
+                'message': 'Database is connected and accessible',
+                'user_count': user_count,
+                'questionnaire_count': questionnaire_count,
+                'database_url': os.getenv('DATABASE_URL', 'Not set')[:50] + '...' if os.getenv('DATABASE_URL') else 'Not set'
+            }), 200
+        except Exception as table_error:
+            return jsonify({
+                'status': 'connected_no_tables',
+                'message': 'Database connected but tables may not exist',
+                'error': str(table_error),
+                'database_url': os.getenv('DATABASE_URL', 'Not set')[:50] + '...' if os.getenv('DATABASE_URL') else 'Not set'
+            }), 200
+            
+    except Exception as e:
+        return jsonify({
+            'status': 'disconnected',
+            'message': 'Cannot connect to database',
+            'error': str(e),
+            'database_url': os.getenv('DATABASE_URL', 'Not set')[:50] + '...' if os.getenv('DATABASE_URL') else 'Not set'
+        }), 503
+
 @app.route('/api/register', methods=['POST'])
 def register():
-    data = request.get_json()
-    username = data.get('username')
-    email = data.get('email')
-    password = data.get('password')
-    if not username or not email or not password:
-        return jsonify({'msg': 'Missing fields'}), 400
-    if User.query.filter((User.username == username) | (User.email == email)).first():
-        return jsonify({'msg': 'User already exists'}), 409
-    pw_hash = bcrypt.generate_password_hash(password).decode('utf-8')
-    user = User(username=username, email=email, password_hash=pw_hash)
-    db.session.add(user)
-    db.session.commit()
-    print(f"User registered: {username} (ID: {user.id})")
-    return jsonify({'msg': 'User registered successfully'}), 201
+    try:
+        data = request.get_json()
+        username = data.get('username')
+        email = data.get('email')
+        password = data.get('password')
+        
+        if not username or not email or not password:
+            return jsonify({'msg': 'Missing fields'}), 400
+        
+        # Check if database is available
+        try:
+            existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
+            if existing_user:
+                return jsonify({'msg': 'User already exists'}), 409
+        except Exception as db_error:
+            print(f"Database connection error during user check: {db_error}")
+            return jsonify({
+                'msg': 'Database connection error. Please ensure PostgreSQL database is connected.',
+                'error': 'Database unavailable',
+                'details': str(db_error)
+            }), 503
+        
+        try:
+            pw_hash = bcrypt.generate_password_hash(password).decode('utf-8')
+            user = User(username=username, email=email, password_hash=pw_hash)
+            db.session.add(user)
+            db.session.commit()
+            print(f"User registered: {username} (ID: {user.id})")
+            return jsonify({'msg': 'User registered successfully'}), 201
+        except Exception as db_error:
+            db.session.rollback()
+            print(f"Database error during user creation: {db_error}")
+            return jsonify({
+                'msg': 'Failed to create user due to database error',
+                'error': 'Database write error',
+                'details': str(db_error)
+            }), 503
+            
+    except Exception as e:
+        print(f"General error in register endpoint: {e}")
+        return jsonify({
+            'msg': 'An unexpected error occurred',
+            'error': 'Server error',
+            'details': str(e)
+        }), 500
 
 @app.route('/api/login', methods=['POST'])
 def login():
