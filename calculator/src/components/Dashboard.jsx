@@ -82,14 +82,21 @@ const Dashboard = () => {
       
       console.log('Fetching dashboard data...');
       console.log('Token being sent:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
+      console.log('Full token length:', token ? token.length : 0);
       console.log('API URL:', `${API_BASE_URL}/api/dashboard`);
+      
+      // Test the token format
+      console.log('Authorization header will be:', `Bearer ${token}`);
+      
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+      console.log('Headers being sent:', headers);
       
       const response = await fetch(`${API_BASE_URL}/api/dashboard`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: headers,
         credentials: 'include'
       });
       

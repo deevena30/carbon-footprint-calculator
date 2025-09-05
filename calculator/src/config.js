@@ -6,7 +6,7 @@ const config = {
   },
   // Production - Update this with your Railway URL
   production: {
-     apiUrl: import.meta.env.VITE_API_URL || 'https://your-render-app.onrender.com'
+     apiUrl: import.meta.env.VITE_API_URL || 'https://carbon-footprint-calculatorabcd.onrender.com'
   }
 };
 
