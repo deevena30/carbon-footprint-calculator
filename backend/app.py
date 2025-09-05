@@ -68,7 +68,8 @@ def health_check():
 def db_status():
     try:
         # Try to connect to database
-        db.session.execute('SELECT 1')
+        from sqlalchemy import text
+        db.session.execute(text('SELECT 1'))
         db.session.commit()
         
         # Check if tables exist
