@@ -215,7 +215,19 @@ def dashboard():
     latest_data = QuestionnaireData.query.filter_by(user_id=user_id).order_by(QuestionnaireData.submitted_at.desc()).first()
     
     if not latest_data:
-        return jsonify({'msg': 'No questionnaire data found'}), 404
+        # Return empty dashboard for new users
+        return jsonify({
+            'msg': 'Welcome! Complete your first carbon footprint assessment to see your dashboard.',
+            'dashboard': {
+                'greenScore': 0,
+                'carbonScore': 0, 
+                'waterScore': 0,
+                'wasteScore': 0,
+                'totalCarbon': 0,
+                'isFirstTime': True
+            },
+            'recentScores': []
+        }), 200
     
     # Get all scores to exclude the current one and handle duplicates
     all_scores = QuestionnaireData.query.filter_by(user_id=user_id).order_by(QuestionnaireData.submitted_at.desc()).all()
