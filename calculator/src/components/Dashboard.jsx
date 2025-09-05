@@ -70,18 +70,27 @@ const Dashboard = () => {
     setError(null);
     try {
       const token = localStorage.getItem('token');
+      console.log('Token from localStorage:', token ? 'Present (' + token.length + ' chars)' : 'Missing');
+      
       if (!token) {
+        console.log('No token found, redirecting to login');
         setError('You must be logged in to view the dashboard.');
+        navigate('/login');
         setIsLoading(false);
         return;
       }
       
       console.log('Fetching dashboard data...');
+      console.log('Token being sent:', token ? token.substring(0, 20) + '...' : 'NO TOKEN');
+      console.log('API URL:', `${API_BASE_URL}/api/dashboard`);
+      
       const response = await fetch(`${API_BASE_URL}/api/dashboard`, {
         method: 'GET',
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
-        }
+        },
+        credentials: 'include'
       });
       
       console.log('Response status:', response.status);
@@ -132,8 +141,10 @@ const Dashboard = () => {
       const response = await fetch(`${API_BASE_URL}/api/top-users`, {
         method: 'GET',
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
-        }
+        },
+        credentials: 'include'
       });
       
       console.log('Top users response status:', response.status);
@@ -158,8 +169,10 @@ const Dashboard = () => {
       const response = await fetch(`${API_BASE_URL}/api/notifications`, {
         method: 'GET',
         headers: {
+          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
-        }
+        },
+        credentials: 'include'
       });
       
       console.log('Notifications response status:', response.status);
@@ -200,8 +213,10 @@ const Dashboard = () => {
         const response = await fetch(`${API_BASE_URL}/api/delete-account`, {
           method: 'DELETE',
           headers: {
+            'Content-Type': 'application/json',
             'Authorization': `Bearer ${token}`
-          }
+          },
+          credentials: 'include'
         });
         
         if (response.ok) {
