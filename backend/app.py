@@ -64,6 +64,25 @@ def index():
 def health_check():
     return jsonify({'status': 'healthy', 'message': 'Backend is running'}), 200
 
+@app.route('/api/init-tables', methods=['POST'])
+def init_tables():
+    try:
+        db.create_all()
+        user_count = User.query.count()
+        questionnaire_count = QuestionnaireData.query.count()
+        return jsonify({
+            'status': 'success',
+            'message': 'Database tables created successfully',
+            'user_count': user_count,
+            'questionnaire_count': questionnaire_count
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': 'Failed to create tables',
+            'error': str(e)
+        }), 500
+
 @app.route('/api/db-status', methods=['GET'])
 def db_status():
     try:
@@ -456,6 +475,18 @@ def init_db():
     db.create_all()
     print('Database tables created.')
     export_all_to_csv()
+
+# Initialize database tables when app starts
+def create_tables():
+    with app.app_context():
+        try:
+            db.create_all()
+            print('Database tables created successfully')
+        except Exception as e:
+            print(f'Error creating database tables: {e}')
+
+# Create tables on startup
+create_tables()
 
 if __name__ == '__main__':
     with app.app_context():
