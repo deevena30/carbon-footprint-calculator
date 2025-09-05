@@ -17,12 +17,18 @@ from flask_cors import CORS
 import csv
 
 app = Flask(__name__)
+# More permissive CORS for deployment
 CORS(app, resources={
-    r"/api/*": {
+    r"/*": {
         "origins": [
             "http://localhost:5173",
-            "https://carbon-footprint-calculator-p1km.vercel.app"
+            "http://localhost:3000",
+            "https://*.vercel.app",
+            "https://carbon-footprint-calculator-p1km.vercel.app",
+            "https://vercel.app"
         ],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"],
         "supports_credentials": True
     }
 })
@@ -39,6 +45,18 @@ bcrypt.init_app(app)
 jwt.init_app(app)
 
 # Placeholder for routes and models
+
+@app.route('/', methods=['GET'])
+def index():
+    return jsonify({
+        'message': 'Carbon Footprint Calculator Backend API',
+        'status': 'running',
+        'endpoints': ['/api/register', '/api/login', '/api/data', '/api/dashboard', '/api/health']
+    }), 200
+
+@app.route('/api/health', methods=['GET'])
+def health_check():
+    return jsonify({'status': 'healthy', 'message': 'Backend is running'}), 200
 
 @app.route('/api/register', methods=['POST'])
 def register():
@@ -369,5 +387,11 @@ def init_db():
 
 if __name__ == '__main__':
     with app.app_context():
-        export_all_to_csv()
-    app.run(debug=False)
+        try:
+            # Try to create tables if they don't exist
+            db.create_all()
+            print('Database tables initialized.')
+            export_all_to_csv()
+        except Exception as e:
+            print(f'Database initialization error: {e}')
+    app.run(debug=False, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))

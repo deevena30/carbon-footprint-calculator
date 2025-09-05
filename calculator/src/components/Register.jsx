@@ -74,6 +74,13 @@ const Register = () => {
     }
 
     try {
+      // Check if API_BASE_URL is defined
+      if (!API_BASE_URL) {
+        setError('API configuration error. Please check your environment variables.');
+        setIsLoading(false);
+        return;
+      }
+
       // Call backend API
       const response = await fetch(`${API_BASE_URL}/api/register`, {
         method: 'POST',
@@ -84,9 +91,24 @@ const Register = () => {
           password: formData.password
         })
       });
+      
+      // Check if response is HTML (error page) instead of JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        console.error('Received non-JSON response:', {
+          status: response.status,
+          statusText: response.statusText,
+          url: response.url,
+          contentType: contentType
+        });
+        setError(`Server error (${response.status}): Unable to connect to the API. Please try again later.`);
+        setIsLoading(false);
+        return;
+      }
+      
       const data = await response.json();
       if (!response.ok) {
-        setError(data.msg || 'Registration failed.');
+        setError(data.msg || `Registration failed (${response.status})`);
         setIsLoading(false);
         return;
       }
@@ -95,7 +117,11 @@ const Register = () => {
       navigate('/login', { state: { fromRegistration: true } });
     } catch (error) {
       console.error('Registration error:', error);
-      setError('An error occurred during registration. Please try again.');
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        setError('Unable to connect to the server. Please check your internet connection and try again.');
+      } else {
+        setError('An error occurred during registration. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }
