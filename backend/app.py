@@ -65,12 +65,30 @@ def index():
 def health_check():
     return jsonify({'status': 'healthy', 'message': 'Backend is running'}), 200
 
+@app.route('/api/jwt-config', methods=['GET'])
+def jwt_config():
+    return jsonify({
+        'jwt_secret_set': bool(os.getenv('JWT_SECRET_KEY')),
+        'jwt_secret_length': len(os.getenv('JWT_SECRET_KEY', '')) if os.getenv('JWT_SECRET_KEY') else 0,
+        'jwt_algorithm': 'HS256',
+        'jwt_expires': str(app.config.get('JWT_ACCESS_TOKEN_EXPIRES', 'Not set')),
+        'using_default_secret': os.getenv('JWT_SECRET_KEY') == 'super-secret-key' or not os.getenv('JWT_SECRET_KEY')
+    }), 200
+
 @app.route('/api/auth-test', methods=['GET'])
 @jwt_required()
 def auth_test():
     try:
+        # Debug JWT token
+        auth_header = request.headers.get('Authorization')
+        print(f"Auth header received: {auth_header[:50]}..." if auth_header else "No auth header")
+        
         user_id = get_jwt_identity()
+        print(f"JWT Identity: {user_id}")
+        
         user = User.query.get(user_id) if user_id else None
+        print(f"User found: {user.username if user else 'None'}")
+        
         return jsonify({
             'status': 'authenticated',
             'user_id': user_id,
@@ -78,10 +96,14 @@ def auth_test():
             'message': 'JWT token is valid'
         }), 200
     except Exception as e:
+        auth_header = request.headers.get('Authorization')
+        print(f"JWT Error: {e}")
+        print(f"Auth header: {auth_header[:50]}..." if auth_header else "No auth header")
         return jsonify({
             'status': 'error',
             'message': 'JWT token validation failed',
-            'error': str(e)
+            'error': str(e),
+            'auth_header_present': bool(auth_header)
         }), 401
 
 @app.route('/api/init-tables', methods=['POST'])
