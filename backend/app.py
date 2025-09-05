@@ -35,6 +35,12 @@ CORS(app, resources={
 # Configurations
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'postgresql://postgres:suscell@localhost:5432/carbon_footprint')
+
+# Handle Neon's database connection requirements
+if 'neon.tech' in app.config['SQLALCHEMY_DATABASE_URI']:
+    # Neon requires SSL
+    if 'sslmode=' not in app.config['SQLALCHEMY_DATABASE_URI']:
+        app.config['SQLALCHEMY_DATABASE_URI'] += '?sslmode=require'
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'super-secret-key')
 
 # Handle Railway's PostgreSQL URL format
