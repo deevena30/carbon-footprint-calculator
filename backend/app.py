@@ -75,6 +75,21 @@ def jwt_config():
         'using_default_secret': os.getenv('JWT_SECRET_KEY') == 'super-secret-key' or not os.getenv('JWT_SECRET_KEY')
     }), 200
 
+@app.route('/api/headers-test', methods=['GET', 'POST', 'OPTIONS'])
+def headers_test():
+    """Test endpoint to debug header reception without JWT requirement"""
+    auth_header = request.headers.get('Authorization')
+    all_headers = dict(request.headers)
+    
+    return jsonify({
+        'method': request.method,
+        'authorization_header': auth_header,
+        'auth_header_present': bool(auth_header),
+        'headers_received': all_headers,
+        'origin': request.headers.get('Origin'),
+        'content_type': request.headers.get('Content-Type')
+    }), 200
+
 @app.route('/api/auth-test', methods=['GET'])
 @jwt_required()
 def auth_test():
@@ -267,7 +282,14 @@ def submit_data():
 @jwt_required()
 def dashboard():
     try:
+        # Debug the actual request
+        auth_header = request.headers.get('Authorization')
+        print(f"[DASHBOARD] Auth header: {auth_header[:50]}..." if auth_header else "[DASHBOARD] No auth header")
+        print(f"[DASHBOARD] Request method: {request.method}")
+        print(f"[DASHBOARD] Request origin: {request.headers.get('Origin')}")
+        
         user_id = get_jwt_identity()
+        print(f"[DASHBOARD] JWT Identity: {user_id}")
         
         # Validate user_id
         if not user_id:
