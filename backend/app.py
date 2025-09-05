@@ -42,6 +42,7 @@ if 'neon.tech' in app.config['SQLALCHEMY_DATABASE_URI']:
     if 'sslmode=' not in app.config['SQLALCHEMY_DATABASE_URI']:
         app.config['SQLALCHEMY_DATABASE_URI'] += '?sslmode=require'
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'super-secret-key')
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=1)  # Token expires in 1 day
 
 # Handle Railway's PostgreSQL URL format
 if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
@@ -187,21 +188,36 @@ def register():
 
 @app.route('/api/login', methods=['POST'])
 def login():
-    data = request.get_json()
-    username_or_email = data.get('username')
-    password = data.get('password')
-    user = User.query.filter((User.username == username_or_email) | (User.email == username_or_email)).first()
-    if not user or not bcrypt.check_password_hash(user.password_hash, password):
-        return jsonify({'msg': 'Invalid credentials'}), 401
-    access_token = create_access_token(identity=user.id)
-    return jsonify({
-        'access_token': access_token,
-        'user': {
-            'id': user.id,
-            'username': user.username,
-            'email': user.email
-        }
-    }), 200
+    try:
+        data = request.get_json()
+        username_or_email = data.get('username')
+        password = data.get('password')
+        
+        if not username_or_email or not password:
+            return jsonify({'msg': 'Username/email and password are required'}), 400
+        
+        user = User.query.filter((User.username == username_or_email) | (User.email == username_or_email)).first()
+        if not user or not bcrypt.check_password_hash(user.password_hash, password):
+            return jsonify({'msg': 'Invalid credentials'}), 401
+        
+        access_token = create_access_token(identity=user.id)
+        print(f"User logged in: {user.username} (ID: {user.id})")
+        
+        return jsonify({
+            'access_token': access_token,
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email
+            }
+        }), 200
+        
+    except Exception as e:
+        print(f"Login error: {e}")
+        return jsonify({
+            'msg': 'An error occurred during login',
+            'error': str(e)
+        }), 500
 
 @app.route('/api/data', methods=['POST'])
 @jwt_required()
@@ -239,58 +255,58 @@ def dashboard():
         user = User.query.get(user_id)
         if not user:
             return jsonify({'msg': 'User not found'}), 404
-    
-    # Get the most recent questionnaire data
-    latest_data = QuestionnaireData.query.filter_by(user_id=user_id).order_by(QuestionnaireData.submitted_at.desc()).first()
-    
-    if not latest_data:
-        # Return empty dashboard for new users
-        return jsonify({
-            'msg': 'Welcome! Complete your first carbon footprint assessment to see your dashboard.',
-            'dashboard': {
-                'greenScore': 0,
-                'carbonScore': 0, 
-                'waterScore': 0,
-                'wasteScore': 0,
-                'totalCarbon': 0,
-                'isFirstTime': True
-            },
-            'recentScores': []
-        }), 200
-    
-    # Get all scores to exclude the current one and handle duplicates
-    all_scores = QuestionnaireData.query.filter_by(user_id=user_id).order_by(QuestionnaireData.submitted_at.desc()).all()
-    
-    # Format all scores and remove duplicates
-    formatted_scores = []
-    seen_scores = set()
-    
-    for score in all_scores:
-        score_data = score.data
-        if isinstance(score_data, dict) and 'greenScore' in score_data:
-            score_key = f"{score_data.get('greenScore', 0)}-{score_data.get('carbonScore', 0)}-{score_data.get('waterScore', 0)}-{score_data.get('wasteScore', 0)}"
-            
-            if score_key not in seen_scores:
-                seen_scores.add(score_key)
-                formatted_scores.append({
-                    'date': score.submitted_at.isoformat(),
-                    'greenScore': score_data.get('greenScore', 0),
-                    'carbonScore': score_data.get('carbonScore', 0),
-                    'waterScore': score_data.get('waterScore', 0),
-                    'wasteScore': score_data.get('wasteScore', 0),
-                    'totalCarbon': score_data.get('totalCarbon', 0)
-                })
-    
-    # Exclude the current score (first one) and take up to 3 previous scores
-    formatted_recent_scores = formatted_scores[1:4] if len(formatted_scores) > 1 else []
-    
+        
+        # Get the most recent questionnaire data
+        latest_data = QuestionnaireData.query.filter_by(user_id=user_id).order_by(QuestionnaireData.submitted_at.desc()).first()
+        
+        if not latest_data:
+            # Return empty dashboard for new users
+            return jsonify({
+                'msg': 'Welcome! Complete your first carbon footprint assessment to see your dashboard.',
+                'dashboard': {
+                    'greenScore': 0,
+                    'carbonScore': 0, 
+                    'waterScore': 0,
+                    'wasteScore': 0,
+                    'totalCarbon': 0,
+                    'isFirstTime': True
+                },
+                'recentScores': []
+            }), 200
+        
+        # Get all scores to exclude the current one and handle duplicates
+        all_scores = QuestionnaireData.query.filter_by(user_id=user_id).order_by(QuestionnaireData.submitted_at.desc()).all()
+        
+        # Format all scores and remove duplicates
+        formatted_scores = []
+        seen_scores = set()
+        
+        for score in all_scores:
+            score_data = score.data
+            if isinstance(score_data, dict) and 'greenScore' in score_data:
+                score_key = f"{score_data.get('greenScore', 0)}-{score_data.get('carbonScore', 0)}-{score_data.get('waterScore', 0)}-{score_data.get('wasteScore', 0)}"
+                
+                if score_key not in seen_scores:
+                    seen_scores.add(score_key)
+                    formatted_scores.append({
+                        'date': score.submitted_at.isoformat(),
+                        'greenScore': score_data.get('greenScore', 0),
+                        'carbonScore': score_data.get('carbonScore', 0),
+                        'waterScore': score_data.get('waterScore', 0),
+                        'wasteScore': score_data.get('wasteScore', 0),
+                        'totalCarbon': score_data.get('totalCarbon', 0)
+                    })
+        
+        # Exclude the current score (first one) and take up to 3 previous scores
+        formatted_recent_scores = formatted_scores[1:4] if len(formatted_scores) > 1 else []
+        
         # Return the dashboard data with recent scores
         dashboard_data = latest_data.data
         
         return jsonify({'dashboard': dashboard_data, 'recentScores': formatted_recent_scores})
         
     except Exception as e:
-        print(f"Dashboard error for user {user_id}: {e}")
+        print(f"Dashboard error: {e}")
         return jsonify({
             'msg': 'Error loading dashboard',
             'error': str(e),
