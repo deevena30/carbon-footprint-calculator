@@ -43,6 +43,8 @@ if 'neon.tech' in app.config['SQLALCHEMY_DATABASE_URI']:
         app.config['SQLALCHEMY_DATABASE_URI'] += '?sslmode=require'
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'super-secret-key')
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=1)  # Token expires in 1 day
+app.config['JWT_CSRF_IN_COOKIES'] = False  # Disable CSRF for API requests
+app.config['JWT_COOKIE_CSRF_PROTECT'] = False  # Disable CSRF protection
 
 # Handle Railway's PostgreSQL URL format
 if app.config['SQLALCHEMY_DATABASE_URI'].startswith('postgres://'):
