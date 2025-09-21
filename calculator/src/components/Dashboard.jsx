@@ -72,7 +72,7 @@ const Dashboard = () => {
       const token = localStorage.getItem('token');
       console.log('Token from localStorage:', token ? 'Present (' + token.length + ' chars)' : 'Missing');
       
-      // Debug: Check token expiration
+      // Debug: Check token expiration (temporarily disabled for debugging)
       if (token) {
         try {
           const tokenParts = token.split('.');
@@ -85,13 +85,14 @@ const Dashboard = () => {
             console.log('Current time:', new Date());
             console.log('Token expired:', isExpired);
             
-            if (isExpired) {
-              console.log('Token is expired, removing and redirecting to login');
-              localStorage.removeItem('token');
-              localStorage.removeItem('user');
-              navigate('/login', { state: { tokenExpired: true } });
-              return;
-            }
+            // Temporarily disable auto-removal of expired tokens for debugging
+            // if (isExpired) {
+            //   console.log('Token is expired, removing and redirecting to login');
+            //   localStorage.removeItem('token');
+            //   localStorage.removeItem('user');
+            //   navigate('/login', { state: { tokenExpired: true } });
+            //   return;
+            // }
           }
         } catch (e) {
           console.error('Error parsing token:', e);
@@ -129,6 +130,16 @@ const Dashboard = () => {
       console.log('Response status:', response.status);
       const data = await response.json();
       console.log('Response data:', data);
+      
+      // Additional logging for debugging 422 errors
+      if (response.status === 422) {
+        console.error('422 ERROR DETAILS:');
+        console.error('- Status:', response.status);
+        console.error('- Status Text:', response.statusText);
+        console.error('- Response Data:', JSON.stringify(data, null, 2));
+        console.error('- Request Headers:', headers);
+        console.error('- Token being used:', token ? token.substring(0, 50) + '...' : 'NO TOKEN');
+      }
       
       if (!response.ok) {
         if (response.status === 401 || response.status === 422) {
