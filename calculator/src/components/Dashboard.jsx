@@ -105,7 +105,14 @@ const Dashboard = () => {
       console.log('Response data:', data);
       
       if (!response.ok) {
-        if (response.status === 404) {
+        if (response.status === 401 || response.status === 422) {
+          // Token expired or invalid
+          console.log('Token expired or invalid, redirecting to login');
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          navigate('/login', { state: { tokenExpired: true } });
+          return;
+        } else if (response.status === 404) {
           // New user - no data yet
           console.log('No data found for user, showing new user experience');
           setCarbonData(null);
@@ -159,6 +166,12 @@ const Dashboard = () => {
         const data = await response.json();
         console.log('Top users data:', data);
         setTopUsers(data.topUsers || []);
+      } else if (response.status === 401 || response.status === 422) {
+        // Token expired or invalid
+        console.log('Token expired during top users fetch, redirecting to login');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login', { state: { tokenExpired: true } });
       } else {
         console.error('Failed to fetch top users:', response.status, response.statusText);
       }
@@ -187,6 +200,12 @@ const Dashboard = () => {
         const data = await response.json();
         console.log('Notifications data:', data);
         setNotifications(data.notifications || []);
+      } else if (response.status === 401 || response.status === 422) {
+        // Token expired or invalid
+        console.log('Token expired during notifications fetch, redirecting to login');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        navigate('/login', { state: { tokenExpired: true } });
       } else {
         console.error('Failed to fetch notifications:', response.status, response.statusText);
       }

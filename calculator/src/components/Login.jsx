@@ -17,10 +17,12 @@ const Login = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Check if user came from registration page
+  // Check if user came from registration page or token expired
   useEffect(() => {
     if (location.state?.fromRegistration) {
       setSuccessMessage('Account created successfully! Please login with your credentials.');
+    } else if (location.state?.tokenExpired) {
+      setError('Your session has expired. Please login again.');
     }
   }, [location]);
 
