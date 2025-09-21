@@ -41,7 +41,8 @@ if 'neon.tech' in app.config['SQLALCHEMY_DATABASE_URI']:
     # Neon requires SSL
     if 'sslmode=' not in app.config['SQLALCHEMY_DATABASE_URI']:
         app.config['SQLALCHEMY_DATABASE_URI'] += '?sslmode=require'
-app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'super-secret-key')
+# Use a more consistent default JWT secret key
+app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'carbon-footprint-calculator-default-jwt-secret-2025')
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=1)  # Token expires in 1 day
 app.config['JWT_CSRF_IN_COOKIES'] = False  # Disable CSRF for API requests
 app.config['JWT_COOKIE_CSRF_PROTECT'] = False  # Disable CSRF protection
@@ -74,7 +75,7 @@ def jwt_config():
         'jwt_secret_length': len(os.getenv('JWT_SECRET_KEY', '')) if os.getenv('JWT_SECRET_KEY') else 0,
         'jwt_algorithm': 'HS256',
         'jwt_expires': str(app.config.get('JWT_ACCESS_TOKEN_EXPIRES', 'Not set')),
-        'using_default_secret': os.getenv('JWT_SECRET_KEY') == 'super-secret-key' or not os.getenv('JWT_SECRET_KEY')
+        'using_default_secret': os.getenv('JWT_SECRET_KEY') == 'carbon-footprint-calculator-default-jwt-secret-2025' or not os.getenv('JWT_SECRET_KEY')
     }), 200
 
 @app.route('/api/headers-test', methods=['GET', 'POST', 'OPTIONS'])
