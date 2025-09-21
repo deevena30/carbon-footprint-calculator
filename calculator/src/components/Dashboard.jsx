@@ -72,6 +72,32 @@ const Dashboard = () => {
       const token = localStorage.getItem('token');
       console.log('Token from localStorage:', token ? 'Present (' + token.length + ' chars)' : 'Missing');
       
+      // Debug: Check token expiration
+      if (token) {
+        try {
+          const tokenParts = token.split('.');
+          if (tokenParts.length === 3) {
+            const payload = JSON.parse(atob(tokenParts[1]));
+            const currentTime = Math.floor(Date.now() / 1000);
+            const isExpired = payload.exp && payload.exp < currentTime;
+            console.log('Token payload:', payload);
+            console.log('Token expires at:', new Date(payload.exp * 1000));
+            console.log('Current time:', new Date());
+            console.log('Token expired:', isExpired);
+            
+            if (isExpired) {
+              console.log('Token is expired, removing and redirecting to login');
+              localStorage.removeItem('token');
+              localStorage.removeItem('user');
+              navigate('/login', { state: { tokenExpired: true } });
+              return;
+            }
+          }
+        } catch (e) {
+          console.error('Error parsing token:', e);
+        }
+      }
+      
       if (!token) {
         console.log('No token found, redirecting to login');
         setError('You must be logged in to view the dashboard.');
