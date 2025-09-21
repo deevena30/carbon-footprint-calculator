@@ -143,11 +143,12 @@ const Dashboard = () => {
       
       if (!response.ok) {
         if (response.status === 401 || response.status === 422) {
-          // Token expired or invalid
-          console.log('Token expired or invalid, redirecting to login');
+          // Token invalid - clear storage and redirect to login
+          console.log('Token invalid (status ' + response.status + '), clearing storage and redirecting to login');
           localStorage.removeItem('token');
           localStorage.removeItem('user');
-          navigate('/login', { state: { tokenExpired: true } });
+          // Force a clean redirect without state to prevent loops
+          window.location.href = '/login';
           return;
         } else if (response.status === 404) {
           // New user - no data yet
