@@ -5,7 +5,7 @@ from flask_jwt_extended import JWTManager
 import os
 from extensions import db, bcrypt, jwt
 from models import *
-from flask import request, jsonify
+from flask import request, jsonify, Response
 from models import User, QuestionnaireData
 from flask_cors import CORS
 from flask_jwt_extended import create_access_token
@@ -13,7 +13,6 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import QuestionnaireData
 from datetime import datetime, timedelta
 import json
-from flask_cors import CORS  
 import io
 import csv
 
@@ -656,26 +655,28 @@ def export_csv_endpoint():
     # 4. If the key is correct, generate the CSV file in memory
     output = io.StringIO()
     writer = csv.writer(output)
-    
+
     fieldnames = ['user_id', 'username', 'email', 'created_at', 'questionnaire_id', 'submitted_at', 'greenScore', 'carbonScore', 'waterScore', 'wasteScore', 'totalCarbon']
     writer.writerow(fieldnames)
-    
-    users = User.query.all()
-    for user in users:
-        questionnaires = QuestionnaireData.query.filter_by(user_id=user.id).all()
-        if not questionnaires:
-            writer.writerow([user.id, user.username, user.email, user.created_at.isoformat() if user.created_at else '', '', '', '', '', '', '', ''])
-        else:
-            for q in questionnaires:
-                data = q.data if isinstance(q.data, dict) else {}
-                writer.writerow([
-                    user.id, user.username, user.email,
-                    user.created_at.isoformat() if user.created_at else '',
-                    q.id, q.submitted_at.isoformat() if q.submitted_at else '',
-                    data.get('greenScore', ''), data.get('carbonScore', ''),
-                    data.get('waterScore', ''), data.get('wasteScore', ''),
-                    data.get('totalCarbon', '')
-                ])
+
+    # Ensure all database operations are within the application context
+    with app.app_context():
+        users = User.query.all()
+        for user in users:
+            questionnaires = QuestionnaireData.query.filter_by(user_id=user.id).all()
+            if not questionnaires:
+                writer.writerow([user.id, user.username, user.email, user.created_at.isoformat() if user.created_at else '', '', '', '', '', '', '', ''])
+            else:
+                for q in questionnaires:
+                    data = q.data if isinstance(q.data, dict) else {}
+                    writer.writerow([
+                        user.id, user.username, user.email,
+                        user.created_at.isoformat() if user.created_at else '',
+                        q.id, q.submitted_at.isoformat() if q.submitted_at else '',
+                        data.get('greenScore', ''), data.get('carbonScore', ''),
+                        data.get('waterScore', ''), data.get('wasteScore', ''),
+                        data.get('totalCarbon', '')
+                    ])
 
     output.seek(0)
     
