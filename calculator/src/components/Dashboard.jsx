@@ -101,15 +101,6 @@ const Dashboard = () => {
             console.log('Token expires at:', new Date(payload.exp * 1000));
             console.log('Current time:', new Date());
             console.log('Token expired:', isExpired);
-            
-            // Temporarily disable auto-removal of expired tokens for debugging
-            // if (isExpired) {
-            //   console.log('Token is expired, removing and redirecting to login');
-            //   localStorage.removeItem('token');
-            //   localStorage.removeItem('user');
-            //   navigate('/login', { state: { tokenExpired: true } });
-            //   return;
-            // }
           }
         } catch (e) {
           console.error('Error parsing token:', e);
@@ -121,7 +112,7 @@ const Dashboard = () => {
         setError('You must be logged in to view the dashboard.');
         navigate('/login');
         setIsLoading(false);
-        // return;
+        return;
       }
       
       console.log('Fetching dashboard data...');
@@ -143,10 +134,15 @@ const Dashboard = () => {
         headers: headers,
         credentials: 'include'
       });
-      
-
-      const data = await response.json();
+  
+      // Check if response exists before trying to use it
+      if (!response) {
+        throw new Error('No response received from server');
+      }
+  
       console.log('Response status:', response.status);
+      
+      const data = await response.json();
       console.log('Response data:', data);
       
       // Additional logging for debugging 422 errors
@@ -216,6 +212,12 @@ const Dashboard = () => {
         },
         credentials: 'include'
       });
+      
+      // Add safety check
+      if (!response) {
+        console.error('No response received from top users endpoint');
+        return;
+      }
       
       console.log('Top users response status:', response.status);
       if (response.ok) {
