@@ -22,6 +22,7 @@ CORS(app, resources={
     r"/*": {
         "origins": [
             "http://localhost:5173",
+            "http://127.0.0.1:5173",
             "http://localhost:3000", 
             "https://*.vercel.app",
             "https://carbon-footprint-calculator-p1km.vercel.app"
@@ -263,7 +264,8 @@ def login():
         if not user or not bcrypt.check_password_hash(user.password_hash, password):
             return jsonify({'msg': 'Invalid credentials'}), 401
         
-        access_token = create_access_token(identity=user.id)
+        # Fix: Convert user.id to string
+        access_token = create_access_token(identity=str(user.id))
         print(f"User logged in: {user.username} (ID: {user.id})")
         
         return jsonify({
@@ -308,16 +310,85 @@ def submit_data():
 @jwt_required()
 def dashboard():
     try:
+        # Debug headers first
         auth_header = request.headers.get('Authorization')
         print(f"[DASHBOARD] Full auth header: {auth_header}")
         print(f"[DASHBOARD] Request origin: {request.headers.get('Origin')}")
         print(f"[DASHBOARD] Content-Type: {request.headers.get('Content-Type')}")
         
-        # This will fail if JWT validation fails
-        user_id = get_jwt_identity()
-        print(f"[DASHBOARD] JWT Identity extracted: {user_id}")
+        # Get user ID - only call this once
+        user_id_str = get_jwt_identity()  # This is now a string
+        user_id = int(user_id_str)  # Convert to int for database queries
         
-        # Rest of your existing dashboard code...
+        print(f"[DASHBOARD] JWT Identity (string): {user_id_str}")
+        print(f"[DASHBOARD] User ID (int): {user_id}")
+        
+        # Validate user exists
+        if not user_id:
+            return jsonify({'msg': 'Invalid or missing authentication token'}), 401
+            
+        # Check if user exists - use the int version
+        user = User.query.get(user_id)
+        if not user:
+            return jsonify({'msg': 'User not found'}), 404
+        
+        # Get the most recent questionnaire data
+        latest_data = QuestionnaireData.query.filter_by(user_id=user_id).order_by(QuestionnaireData.submitted_at.desc()).first()
+        
+        if not latest_data:
+            # Return empty dashboard for new users
+            return jsonify({
+                'msg': 'Welcome! Complete your first carbon footprint assessment to see your dashboard.',
+                'dashboard': {
+                    'greenScore': 0,
+                    'carbonScore': 0, 
+                    'waterScore': 0,
+                    'wasteScore': 0,
+                    'totalCarbon': 0,
+                    'isFirstTime': True
+                },
+                'recentScores': []
+            }), 200
+        
+        # Get all scores to exclude the current one and handle duplicates
+        all_scores = QuestionnaireData.query.filter_by(user_id=user_id).order_by(QuestionnaireData.submitted_at.desc()).all()
+        
+        # Format all scores and remove duplicates
+        formatted_scores = []
+        seen_scores = set()
+        
+        for score in all_scores:
+            score_data = score.data
+            if isinstance(score_data, dict) and 'greenScore' in score_data:
+                score_key = f"{score_data.get('greenScore', 0)}-{score_data.get('carbonScore', 0)}-{score_data.get('waterScore', 0)}-{score_data.get('wasteScore', 0)}"
+                
+                if score_key not in seen_scores:
+                    seen_scores.add(score_key)
+                    formatted_scores.append({
+                        'date': score.submitted_at.isoformat(),
+                        'greenScore': score_data.get('greenScore', 0),
+                        'carbonScore': score_data.get('carbonScore', 0),
+                        'waterScore': score_data.get('waterScore', 0),
+                        'wasteScore': score_data.get('wasteScore', 0),
+                        'totalCarbon': score_data.get('totalCarbon', 0)
+                    })
+        
+        # Exclude the current score (first one) and take up to 3 previous scores
+        formatted_recent_scores = formatted_scores[1:4] if len(formatted_scores) > 1 else []
+        
+        # Return the dashboard data with recent scores
+        dashboard_data = latest_data.data
+        
+        return jsonify({'dashboard': dashboard_data, 'recentScores': formatted_recent_scores})        
+    except ValueError as e:
+        print(f"[DASHBOARD] User ID conversion error: {e}")
+        return jsonify({'msg': 'Invalid user ID format', 'error': str(e)}), 400
+    except Exception as e:
+        print(f"[DASHBOARD] JWT Error: {e}")
+        print(f"[DASHBOARD] Error type: {type(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'msg': 'JWT validation failed', 'error': str(e)}), 401
         
     except Exception as e:
         print(f"[DASHBOARD] JWT Error: {e}")
