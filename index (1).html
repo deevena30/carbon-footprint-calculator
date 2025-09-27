@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GESH x Sustainability Cell | Carbon Footprint Calculator</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #e8f5e9; /* Light green background */
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px;
+            background-color: white; /* White container background */
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .section { 
+            margin-bottom: 30px; 
+            border: 1px solid #ddd; 
+            padding: 20px; 
+            border-radius: 8px; 
+            background-color: #f8fff8; /* Lightest green for sections */
+        }
+        .input-column { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 20px; 
+            margin: 15px 0; 
+        }
+        label { 
+            display: block; 
+            margin-bottom: 5px; 
+            font-weight: bold; 
+            font-size: 1.5em; /* Increased font size for subsection headings */
+        }
+        input, select { 
+            width: 100%; 
+            padding: 8px; 
+            box-sizing: border-box; 
+        }
+        button { 
+            background: #2c3e50; 
+            color: white; 
+            padding: 12px 24px; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer;
+            transition: background 0.3s;
+            font-size: 1.2em; /* Increased font size for better visibility */
+            width: 100%; /* Full width for better touch target on phones */
+        }
+        button:hover {
+            background: #1a2635;
+        }
+        .results { 
+            background: #f8fff8; 
+            padding: 20px; 
+            margin-top: 30px;
+            border-radius: 8px;
+        }
+        .result-category { 
+            margin: 15px 0; 
+            padding: 15px; 
+            background: white; 
+            border-left: 4px solid #4CAF50; /* Green accent */
+            border-radius: 4px;
+        }
+        h1 { font-size: 2.5em; }
+        h2 { font-size: 2em; }
+        h3 { font-size: 1.5em; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>GESH x Sustainability Cell | Carbon Footprint Calculator</h1>
+        
+        <form id="calculatorForm">
+            <!-- Academic & Hostel Details -->
+            <div class="section">
+                <h2>Academic & Hostel Details</h2>
+                <div class="input-column">
+                    <div>
+                        <label>1. Hostel Number</label>
+                        <input type="number" id="hostelNo" min="1" max="18" required>
+                    </div>
+                    <div>
+                        <label>2. Credits</label>
+                        <input type="number" id="credits" min="0" max="100" required>
+                    </div>
+                    <div>
+                        <label>3. Time in Labs (hours/week)</label>
+                        <input type="number" id="timeLabs" min="0" max="168" required>
+                    </div>
+                    <div>
+                        <label>4. Time in Library (hours/week)</label>
+                        <input type="number" id="timeLibrary" min="0" max="168" required>
+                    </div>
+                    <div>
+                        <label>5. Time in Gymkhana (hours/week)</label>
+                        <input type="number" id="timeGymkhana" min="0" max="168" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Food & Diet -->
+            <div class="section">
+                <h2>Diet & Food Habits</h2>
+                <div class="input-column">
+                    <div>
+                        <label>6. Daily Diet</label>
+                        <select id="dietType" required>
+                            <option value="Vegan">Vegan</option>
+                            <option value="Vegetarian">Vegetarian</option>
+                            <option value="Pescatarian">Pescatarian</option>
+                            <option value="Egetarian">Egetarian</option>
+                            <option value="White Meat Diet">White Meat Diet</option>
+                            <option value="Red Meat Diet">Red Meat Diet</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>7. Food Orders/Week</label>
+                        <input type="number" id="foodOrders" min="0" max="50" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Outings & Transportation -->
+            <div class="section">
+                <h2>Outings & Entertainment</h2>
+                <div class="input-column">
+                    <div>
+                        <label>8. Outings/Month</label>
+                        <input type="number" id="outingsMonth" min="0" max="31" required>
+                    </div>
+                    <div>
+                        <label>9. Eating Out/Month</label>
+                        <input type="number" id="eatOutMonth" min="0" max="31" required>
+                    </div>
+                    <div>
+                        <label>10. Partying/Clubbing/Month</label>
+                        <input type="number" id="partyingMonth" min="0" max="31" required>
+                    </div>
+                    <div>
+                        <label>11. Shopping Trips/Month</label>
+                        <input type="number" id="shoppingMonth" min="0" max="31" required>
+                    </div>
+                    <div>
+                        <label>12. Usual Outing Type</label>
+                        <select id="outingType" required>
+                            <option value="South Bombay+Cab+meal">South Bombay+Cab+meal</option>
+                            <option value="South Bombay+local+meal">South Bombay+local+meal</option>
+                            <option value="South Bombay+local+cab+meal">South Bombay+local+cab+meal</option>
+                            <option value="South Bombay+cab+clubbing">South Bombay+cab+clubbing</option>
+                            <option value="Around Powai+cab+meal">Around Powai+cab+meal</option>
+                            <option value="Around Powai+rickshaw+meal">Around Powai+rickshaw+meal</option>
+                            <option value="Shopping in a mall+rickshaw">Shopping in a mall+rickshaw</option>
+                            <option value="Around Powai+rickshaw+movie">Around Powai+rickshaw+movie</option>
+                            <option value="Around Powai+cab+clubbing">Around Powai+cab+clubbing</option>
+                            <option value="Temples in Mumbai+local">Temples in Mumbai+local</option>
+                            <option value="Trek+local">Trek+local</option>
+                            <option value="Trek+local+cab">Trek+local+cab</option>
+                            <option value="Sea-ferry+local">Sea-ferry+local</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daily Habits -->
+            <div class="section">
+                <h2>Daily Habits</h2>
+                <div class="input-column">
+                    <div>
+                        <label>13. Showers/Week</label>
+                        <input type="number" id="showers" min="0" max="21" required>
+                    </div>
+                    <div>
+                        <label>14. Bath Duration (minutes)</label>
+                        <input type="number" id="bathDuration" min="1" max="60" required>
+                    </div>
+                    <div>
+                        <label>15. E-commerce Orders/Month</label>
+                        <input type="number" id="ecommerce" min="0" max="100" required>
+                    </div>
+                    <div>
+                        <label>16. Auto Rickshaw Rides/Day</label>
+                        <input type="number" id="autoRides" min="0" max="50" required>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" onclick="calculateFootprint()">Calculate Carbon Footprint</button>
+        </form>
+
+        <div class="results" id="resultsSection">
+            <h2>Calculation Results</h2>
+            <div id="resultsContent"></div>
+        </div>
+    </div>
+
+    <script>
+    const PARAMS = {
+        carbonPerKWh: 0.82,
+        normalization: {
+            carbon: { low: 500, high: 1500 },
+            water: { low: 200, high: 700 },
+            waste: { low: 1, high: 10 }
+        },
+        outingEmissionFactors: {
+            'South Bombay+Cab+meal': 518.7198,
+            'South Bombay+local+meal': 470.637,
+            'South Bombay+local+cab+meal': 494.6784,
+            'South Bombay+cab+clubbing': 472.537,
+            'Around Powai+cab+meal': 477.04804,
+            'Around Powai+rickshaw+meal': 475.835336,
+            'Shopping in a mall+rickshaw': 443.7465367,
+            'Around Powai+rickshaw+movie': 76.8932,
+            'Around Powai+cab+clubbing': 198.7483,
+            'Temples in Mumbai+local': 34.7653,
+            'Trek+local': 27.9573,
+            'Trek+local+cab': 48.0828,
+            'Sea-ferry+local': 167.63863
+        },
+        mealEmissionFactors: {
+            'Vegan': 158.942,
+            'Vegetarian': 112.862,
+            'Pescatarian': 470.637,
+            'Egetarian': 158.812,
+            'White Meat Diet': 486.237,
+            'Red Meat Diet': 494.167
+        }
+    };
+
+    function calculateFootprint() {
+        const inputs = {
+            hostelNo: parseInt(document.getElementById('hostelNo').value),
+            credits: parseInt(document.getElementById('credits').value),
+            timeLabs: parseInt(document.getElementById('timeLabs').value),
+            timeLibrary: parseInt(document.getElementById('timeLibrary').value),
+            timeGymkhana: parseInt(document.getElementById('timeGymkhana').value),
+            dietType: document.getElementById('dietType').value,
+            foodOrders: parseInt(document.getElementById('foodOrders').value),
+            autoRides: parseInt(document.getElementById('autoRides').value),
+            outingsMonth: parseInt(document.getElementById('outingsMonth').value),
+            eatOutMonth: parseInt(document.getElementById('eatOutMonth').value),
+            partyingMonth: parseInt(document.getElementById('partyingMonth').value),
+            shoppingMonth: parseInt(document.getElementById('shoppingMonth').value),
+            outingType: document.getElementById('outingType').value,
+            showers: parseInt(document.getElementById('showers').value),
+            bathDuration: parseInt(document.getElementById('bathDuration').value),
+            ecommerce: parseInt(document.getElementById('ecommerce').value)
+        };
+
+        // Calculate outing emissions
+        const outingEmissions = ((PARAMS.outingEmissionFactors[inputs.outingType] * inputs.outingsMonth) + (PARAMS.mealEmissionFactors[inputs.dietType] * inputs.eatOutMonth)) / 365 + 1.4;
+        //const waterusage = (35 + (0.7 * inputs.bathDuration * 42 * inputs.showers) + 1500) / 7;
+        
+        const elec = ((0.25 * inputs.hostelNo) + (inputs.credits * 0.1) + (inputs.timeLabs * 0.23) + (inputs.timeLibrary * 0.37) + (inputs.timeGymkhana * 0.16));
+        const s = ((0.82 * elec) + 0.3);
+        // Constants
+        
+        const vegan = 158.942;
+        const vegetarian = 112.862;
+        const pescatarian = 470.637;
+        const egetarian = 158.812;
+        const whiteMeatDiet = 486.237;
+        const redMeatDiet = 494.167;
+
+        const dietType = inputs.dietType; // Use the actual input value for diet type
+        
+        const totalwatertodrink = 35;
+        const flowrate  = 6;
+        const actualshoweron = 0.7;
+        const totalwatertoshower = flowrate * inputs.bathDuration * actualshoweron * inputs.showers;
+        const noofflush = 7;
+        const wateramount = 40;
+        const totalwatertoflush = noofflush * wateramount;
+        const veganWater = 1000, vegetarianWater = 1200, pescatarianWater = 1300, egetarianWater = 1400, whiteMeatDietWater = 1500, redMeatDietWater = 1600;
+        const totalwatertoeat = 7 * (
+            dietType === "Vegan" ? veganWater : 
+            dietType === "Vegetarian" ? vegetarianWater :
+            dietType === "Pescatarian" ? pescatarianWater : 
+            dietType === "Egetarian" ? egetarianWater : 
+            dietType === "White Meat Diet" ? whiteMeatDietWater : 
+            dietType === "Red Meat Diet" ? redMeatDietWater : 
+            0
+        );
+        const waterusage = totalwatertodrink + totalwatertoshower + totalwatertoflush + totalwatertoeat;
+        
+        const time_used = 4; // hours
+        const per_person = 0.0002; // kg/hr per person
+        const people = 1; // or set dynamically
+        const mass_flowrate_LPG = 1.5;
+        const density_LPG = 1.898;
+        const co2_LPG = 1.51;
+        const distance_rickshaw = 1.2;
+        const no_rides_rickshaw = 4;
+        
+        const mass_LPG_used = time_used * per_person * people; // in kg
+        const co2_factor_LPG = 3.0; // kg CO₂ per kg LPG burned (typical IPCC value)
+        const co2emission_mess_stove = mass_LPG_used * co2_factor_LPG;
+        
+        const vol_flowrate_LPG = (mass_flowrate_LPG) / (density_LPG * 3600);
+        const co2emission_LPG_value = vol_flowrate_LPG * co2_LPG * 1000;
+        
+        //const co2emission_mess_stove = time_used * per_person * co2emission_LPG_value * 3600;
+
+        const co2emission_rickshaw = distance_rickshaw * no_rides_rickshaw * 0.079;
+        //avg emission from rickshaw 79 gm/km
+
+        const no_tshirt = 10;
+        const kgco2_per_tshirt = 2.5;
+        const no_jeans = 3;
+        const kgco2_per_jeans = 11.5;
+        const no_dress = 0;
+        const kgco2_per_dress = 16;
+        const no_jacket = 3;
+        const kgco2_per_jacket = 19.5;
+        const no_socks = 4;
+        const kgco2_per_socks = 1;
+        const c95 = ((no_tshirt * kgco2_per_tshirt) + (no_jeans * kgco2_per_jeans) + (no_dress * kgco2_per_dress) + (no_jacket * kgco2_per_jacket) + (no_socks * kgco2_per_socks))/365 ;
+
+        const weight_spoon = 0.0025;
+        const no_spoon = 2;
+        const carton_weight_plastic = 0.02;
+        const carton_weight_paper = 0.2;
+        const carry_bag_weight = 0.006;
+        const good_plastic_weight = 0.35;
+        
+        const wasteg = (((((weight_spoon * no_spoon) + carton_weight_plastic + carton_weight_paper + carry_bag_weight) * inputs.foodOrders) * 52) + ((good_plastic_weight * inputs.ecommerce * 4)*12))/365 + 
+                    (
+            dietType === "Vegan" ? vegan :
+            dietType === "Vegetarian" ? vegetarian :
+            dietType === "Pescatarian" ? pescatarian :
+            dietType === "Egetarian" ? egetarian :
+            dietType === "White Meat Diet" ? whiteMeatDiet :
+            dietType === "Red Meat Diet" ? redMeatDiet :
+            0
+        ) + 0.2;
+        
+        // Calculations
+        const electricity = elec.toFixed(2);
+        const scope2 = s.toFixed(2);
+        const scope3 = (c95 + (
+            dietType === "Vegan" ? vegan :
+            dietType === "Vegetarian" ? vegetarian :
+            dietType === "Pescatarian" ? pescatarian :
+            dietType === "Egetarian" ? egetarian :
+            dietType === "White Meat Diet" ? whiteMeatDiet :
+            dietType === "Red Meat Diet" ? redMeatDiet :
+            0
+        )).toFixed(2);
+        const outings = outingEmissions.toFixed(2);
+        const totalCarbon = (s + outingEmissions + (c95 + (
+            dietType === "Vegan" ? vegan :
+            dietType === "Vegetarian" ? vegetarian :
+            dietType === "Pescatarian" ? pescatarian :
+            dietType === "Egetarian" ? egetarian :
+            dietType === "White Meat Diet" ? whiteMeatDiet :
+            dietType === "Red Meat Diet" ? redMeatDiet :
+            0
+        ))).toFixed(2); // Adjust total carbon with outing emissions
+        const water = waterusage.toFixed(2);
+        const waste = wasteg.toFixed(2);
+
+        // Display Results
+        const html = `
+            <table>
+                <tr>
+                    <th>Metric</th>
+                    <th>Value</th>
+                </tr>
+                <tr>
+                    <td>Electricity Used</td>
+                    <td>${electricity} kWh/day</td>
+                </tr>
+                <tr>
+                    <td>Scope-2 Emissions</td>
+                    <td>${scope2} kgCO₂e/day</td>
+                </tr>
+                <tr>
+                    <td>Scope-3 Emissions</td>
+                    <td>${scope3} kgCO₂e/day</td>
+                </tr>
+                <tr>
+                    <td>Outing Emissions</td>
+                    <td>${outings} kgCO₂e/day</td>
+                </tr>
+                <tr>
+                    <td>Total Carbon Footprint</td>
+                    <td>${totalCarbon} kgCO₂e/day</td>
+                </tr>
+                <tr>
+                    <td>Water Usage</td>
+                    <td>${water} L/day</td>
+                </tr>
+                <tr>
+                    <td>Waste Generation</td>
+                    <td>${waste} kg/day</td>
+                </tr>
+            </table>
+        `;
+        
+        document.getElementById('resultsContent').innerHTML = html;
+    }
+    </script>
+</body>
+</html>

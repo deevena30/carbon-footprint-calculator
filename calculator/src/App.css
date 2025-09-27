@@ -1,0 +1,223 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+  background: url('/iitbombay 1.png') no-repeat center center fixed;
+  background-size: cover;
+}
+
+.App {
+  min-height: 100vh;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 18px;
+  color: #666;
+  background: url('/iitbombay 1.png') no-repeat center center fixed;
+  background-size: cover;
+  position: relative;
+}
+
+.loading::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(2px);
+}
+
+.loading > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Global button styles */
+button {
+  font-family: inherit;
+}
+
+/* Global input styles */
+input, select, textarea {
+  font-family: inherit;
+}
+
+/* Global link styles */
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+.bg-overlay {
+  background: rgba(255, 255, 255, 0.85);
+  border-radius: 24px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  padding: 48px 32px;
+  margin: 48px auto;
+  width: 100%;
+  max-width: 800px;
+  min-width: 600px;
+  padding-top: 32px; /* Add extra top padding for logo */
+}
+
+.logo-small {
+  /* Remove position: absolute, top, left, z-index, etc. */
+  width: 64px;
+  height: 64px;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  object-fit: contain;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.bg-overlay h2 {
+  margin-top: 48px;
+  margin-bottom: 32px;
+  text-align: center;
+}
+
+@media (max-width: 700px) {
+  html, body {
+    height: 100vh;
+    min-height: 100vh;
+    width: 100vw;
+    min-width: 100vw;
+    background: url('/iitbombay 1.png') no-repeat center center fixed !important;
+    background-size: cover !important;
+    overflow-x: hidden;
+  }
+  body, #root, #root > div {
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    min-height: 100vh;
+    width: 100vw;
+  }
+  .bg-overlay {
+    width: 96vw;
+    max-width: 420px;
+    min-width: unset;
+    max-height: 92vh;
+    margin: 4vh auto;
+    padding: 32px 2vw 12px 2vw; /* Add top padding for logo */
+    overflow-y: auto;
+    box-sizing: border-box;
+  }
+  .logo-small {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 12px;
+    display: block;
+  }
+  .bg-overlay h2 {
+    margin-top: 18px;
+    margin-bottom: 18px;
+  }
+}
+
+.option-group {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin: 16px 0 24px 0;
+}
+.option-btn {
+  border: none;
+  border-radius: 24px;
+  background: #e0f5d8;
+  color: #222;
+  font-size: 20px;
+  font-weight: 600;
+  padding: 16px 0;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px rgba(139,195,74,0.08);
+  cursor: pointer;
+  outline: none;
+}
+.option-btn.selected, .option-btn:active {
+  background: linear-gradient(90deg, #8BC34A 0%, #4CAF50 100%);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(139,195,74,0.15);
+}
+.option-btn:focus {
+  outline: 2px solid #8BC34A;
+}
