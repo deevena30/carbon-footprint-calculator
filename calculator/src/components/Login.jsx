@@ -66,7 +66,11 @@ const Login = () => {
       // Store JWT token and user info
       localStorage.setItem('token', data.access_token);
       localStorage.setItem('user', JSON.stringify(data.user));
-      window.dispatchEvent(new Event('storage'));
+      
+      // Trigger custom event for same-tab localStorage updates
+      window.dispatchEvent(new Event('localStorageChanged'));
+      
+      console.log('💾 Token and user stored, navigating to dashboard');
       navigate('/dashboard');
     } catch (error) {
       console.error('Login error:', error);

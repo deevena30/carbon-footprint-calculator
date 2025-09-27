@@ -28,25 +28,40 @@ function App() {
   // Update authentication state when localStorage changes
   useEffect(() => {
     const handleStorageChange = () => {
+      console.log('🔄 Storage change detected in App.jsx');
       const token = localStorage.getItem('token');
       const user = localStorage.getItem('user');
+      console.log('Auth state check:', { tokenExists: !!token, userExists: !!user });
       setIsAuthenticated(!!(token && user));
     };
 
+    // Listen for storage events from other tabs
     window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
+    
+    // Also listen for custom storage events from the same tab
+    window.addEventListener('localStorageChanged', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('localStorageChanged', handleStorageChange);
+    };
   }, []);
 
   // Protected Route component
   const ProtectedRoute = ({ children }) => {
+    console.log('🔒 ProtectedRoute check:', { isLoading, isAuthenticated });
+    
     if (isLoading) {
+      console.log('⏳ Still loading authentication state...');
       return <div className="loading">Loading...</div>;
     }
     
     if (!isAuthenticated) {
+      console.log('❌ Not authenticated, redirecting to login');
       return <Navigate to="/login" replace />;
     }
     
+    console.log('✅ Authenticated, rendering protected content');
     return children;
   };
 
