@@ -5,7 +5,7 @@ import { API_BASE_URL } from '../config';
 import logo from '../assets/sus-logo.png';
 import './Login.css';
 
-const Login = () => {
+const Login = ({ setIsAuthenticated }) => {  // Add setIsAuthenticated prop
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -57,21 +57,26 @@ const Login = () => {
           password: formData.password
         })
       });
+      
       const data = await response.json();
+      
       if (!response.ok) {
         setError(data.msg || 'Invalid email or password. Please check your credentials.');
         setIsLoading(false);
         return;
       }
+      
       // Store JWT token and user info
       localStorage.setItem('token', data.access_token);
       localStorage.setItem('user', JSON.stringify(data.user));
       
-      // Trigger custom event for same-tab localStorage updates
-      window.dispatchEvent(new Event('localStorageChanged'));
+      // Update authentication state directly (REMOVED the event dispatch)
+      console.log('💾 Token and user stored, updating auth state');
+      setIsAuthenticated(true); // Direct state update
       
-      console.log('💾 Token and user stored, navigating to dashboard');
+      console.log('✅ Login successful, navigating to dashboard');
       navigate('/dashboard');
+      
     } catch (error) {
       console.error('Login error:', error);
       setError('An error occurred during login. Please try again.');
@@ -90,15 +95,14 @@ const Login = () => {
       
       <div className="login-card">
         <div className="login-header">
-          
           <p>Sign in to your account to continue</p>
         </div>
 
-{error && (
-  <div role="alert" aria-live="assertive" className="error-message">
-    {error}
-  </div>
-)}
+        {error && (
+          <div role="alert" aria-live="assertive" className="error-message">
+            {error}
+          </div>
+        )}
 
         {successMessage && (
           <div className="success-message">
@@ -166,4 +170,4 @@ const Login = () => {
   );
 };
 
-export default Login; 
+export default Login;

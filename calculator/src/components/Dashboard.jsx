@@ -25,7 +25,7 @@ import {
 import { API_BASE_URL } from '../config';
 import './Dashboard.css';
 
-const Dashboard = () => {
+const Dashboard = ({ setIsAuthenticated }) => {  // Add setIsAuthenticated prop
   console.log('=== DASHBOARD COMPONENT RENDER START ===');
   console.log('Dashboard component starting to render');
   console.log('Current URL:', window.location.href);
@@ -161,6 +161,10 @@ const Dashboard = () => {
           console.log('Token invalid (status ' + response.status + '), clearing storage and redirecting to login');
           localStorage.removeItem('token');
           localStorage.removeItem('user');
+          // Update authentication state
+          if (setIsAuthenticated) {
+            setIsAuthenticated(false);
+          }
           // Force a clean redirect without state to prevent loops
           window.location.href = '/login';
           return;
@@ -229,6 +233,10 @@ const Dashboard = () => {
         console.log('Token expired during top users fetch, redirecting to login');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        // Update authentication state
+        if (setIsAuthenticated) {
+          setIsAuthenticated(false);
+        }
         navigate('/login', { state: { tokenExpired: true } });
       } else {
         console.error('Failed to fetch top users:', response.status, response.statusText);
@@ -263,6 +271,10 @@ const Dashboard = () => {
         console.log('Token expired during notifications fetch, redirecting to login');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        // Update authentication state
+        if (setIsAuthenticated) {
+          setIsAuthenticated(false);
+        }
         navigate('/login', { state: { tokenExpired: true } });
       } else {
         console.error('Failed to fetch notifications:', response.status, response.statusText);
@@ -276,9 +288,12 @@ const Dashboard = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     
-    // Trigger storage event to update authentication state
-    window.dispatchEvent(new Event('storage'));
+    // Update authentication state directly instead of using storage events
+    if (setIsAuthenticated) {
+      setIsAuthenticated(false);
+    }
     
+    console.log('✅ Logout successful, redirecting to login');
     navigate('/login');
   };
 
@@ -480,10 +495,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-
-
-
-
         {/* Top Users Leaderboard */}
         <div className="top-users-section">
           <h2>🏆 Top 10 Users Leaderboard</h2>
@@ -536,8 +547,9 @@ const Dashboard = () => {
             </div>
           </div>
         )}
-                {/* Notifications Section */}
-                {notifications && notifications.length > 0 && (
+        
+        {/* Notifications Section */}
+        {notifications && notifications.length > 0 && (
           <div className="notifications-section">
             <h2>🔔 Notifications ({notifications.length})</h2>
             <div className="notifications-list">
@@ -660,4 +672,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard; 
+export default Dashboard;
