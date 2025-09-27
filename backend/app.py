@@ -6,7 +6,7 @@ import os
 from extensions import db, bcrypt, jwt
 from models import *
 from flask import request, jsonify
-from models import User
+from models import User, QuestionnaireData
 from flask_cors import CORS
 from flask_jwt_extended import create_access_token
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -14,6 +14,7 @@ from models import QuestionnaireData
 from datetime import datetime, timedelta
 import json
 from flask_cors import CORS  
+import io
 import csv
 
 app = Flask(__name__)
@@ -302,8 +303,8 @@ def submit_data():
     qdata = QuestionnaireData(user_id=user_id, data=data)
     db.session.add(qdata)
     db.session.commit()
-    print(f"Questionnaire data saved for user {user_id}, score: {data.get('greenScore', 'N/A')}")
-    export_all_to_csv()
+    print(f"Questionnaire data saved for user {user_id}, score: {data.get('greenScore', 'N/A')}")    
+    # REMOVED: Do not write to the server's temporary filesystem on every submission.
     return jsonify({'msg': 'Data submitted successfully'}), 201
 
 @app.route('/api/dashboard', methods=['GET'])
@@ -634,6 +635,56 @@ def create_tables():
         except Exception as e:
             print(f'Error creating database tables: {e}')
 
+@app.route('/api/export/csv', methods=['GET'])
+def export_csv_endpoint():
+    """
+    Generates a CSV of all user and questionnaire data in memory
+    and returns it as a downloadable file.
+    This endpoint is protected by a secret key in the URL.
+    """
+    # 1. Get the secret key from the URL query parameter
+    provided_secret = request.args.get('secret')
+
+    # 2. Get the actual secret key from environment variables
+    #    You will need to set this in Render.
+    expected_secret = os.getenv('EXPORT_SECRET_KEY')
+
+    # 3. Check if the keys match
+    if not expected_secret or provided_secret != expected_secret:
+        return jsonify({'error': 'Forbidden. Invalid or missing secret key.'}), 403
+
+    # 4. If the key is correct, generate the CSV file in memory
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    fieldnames = ['user_id', 'username', 'email', 'created_at', 'questionnaire_id', 'submitted_at', 'greenScore', 'carbonScore', 'waterScore', 'wasteScore', 'totalCarbon']
+    writer.writerow(fieldnames)
+    
+    users = User.query.all()
+    for user in users:
+        questionnaires = QuestionnaireData.query.filter_by(user_id=user.id).all()
+        if not questionnaires:
+            writer.writerow([user.id, user.username, user.email, user.created_at.isoformat() if user.created_at else '', '', '', '', '', '', '', ''])
+        else:
+            for q in questionnaires:
+                data = q.data if isinstance(q.data, dict) else {}
+                writer.writerow([
+                    user.id, user.username, user.email,
+                    user.created_at.isoformat() if user.created_at else '',
+                    q.id, q.submitted_at.isoformat() if q.submitted_at else '',
+                    data.get('greenScore', ''), data.get('carbonScore', ''),
+                    data.get('waterScore', ''), data.get('wasteScore', ''),
+                    data.get('totalCarbon', '')
+                ])
+
+    output.seek(0)
+    
+    return Response(
+        output,
+        mimetype="text/csv",
+        headers={"Content-Disposition": "attachment;filename=all_data_export.csv"}
+    )
+
 # Create tables on startup
 create_tables()
 
@@ -643,7 +694,6 @@ if __name__ == '__main__':
             # Try to create tables if they don't exist
             db.create_all()
             print('Database tables initialized.')
-            export_all_to_csv()
         except Exception as e:
             print(f'Database initialization error: {e}')
     app.run(debug=False, host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
