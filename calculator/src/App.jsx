@@ -10,20 +10,73 @@ import './App.css';
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // Monitor localStorage for unexpected changes
+  useEffect(() => {
+    const originalSetItem = localStorage.setItem;
+    const originalRemoveItem = localStorage.removeItem;
+    const originalClear = localStorage.clear;
+    
+    localStorage.setItem = function(key, value) {
+      console.log('📝 localStorage.setItem:', key, value ? value.substring(0, 50) + '...' : 'null');
+      return originalSetItem.apply(this, arguments);
+    };
+    
+    localStorage.removeItem = function(key) {
+      console.log('🗑️ localStorage.removeItem:', key);
+      return originalRemoveItem.apply(this, arguments);
+    };
+    
+    localStorage.clear = function() {
+      console.log('🧹 localStorage.clear() called');
+      return originalClear.apply(this, arguments);
+    };
+    
+    return () => {
+      localStorage.setItem = originalSetItem;
+      localStorage.removeItem = originalRemoveItem;
+      localStorage.clear = originalClear;
+    };
+  }, []);
 
   useEffect(() => {
+    console.log('🔄 App.jsx initial auth check');
     // Check if user is authenticated
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
     
+    console.log('Initial auth check:', { tokenExists: !!token, userExists: !!user });
+    
     if (token && user) {
+      console.log('✅ Setting authenticated to true');
       setIsAuthenticated(true);
     } else {
+      console.log('❌ Setting authenticated to false');
       setIsAuthenticated(false);
     }
     
     setIsLoading(false);
+    console.log('Auth loading complete');
   }, []);
+  
+  // Add periodic auth check to catch any missed updates
+  useEffect(() => {
+    const intervalCheck = setInterval(() => {
+      const token = localStorage.getItem('token');
+      const user = localStorage.getItem('user');
+      const shouldBeAuthenticated = !!(token && user);
+      
+      if (shouldBeAuthenticated !== isAuthenticated) {
+        console.log('🕰️ Periodic auth check - updating state:', { 
+          was: isAuthenticated, 
+          shouldBe: shouldBeAuthenticated 
+        });
+        setIsAuthenticated(shouldBeAuthenticated);
+      }
+    }, 1000); // Check every second
+    
+    return () => clearInterval(intervalCheck);
+  }, [isAuthenticated]);
 
   // Update authentication state when localStorage changes
   useEffect(() => {
