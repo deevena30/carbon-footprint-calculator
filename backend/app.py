@@ -22,14 +22,14 @@ CORS(app, resources={
     r"/*": {
         "origins": [
             "http://localhost:5173",
-            "http://localhost:3000",
+            "http://localhost:3000", 
             "https://*.vercel.app",
-            "https://carbon-footprint-calculator-p1km.vercel.app",
-            "https://vercel.app"
+            "https://carbon-footprint-calculator-p1km.vercel.app"
         ],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"],
-        "supports_credentials": True
+        "allow_headers": ["Content-Type", "Authorization", "Access-Control-Allow-Credentials"],
+        "supports_credentials": True,
+        "expose_headers": ["Authorization"]
     }
 })
 # Configurations
@@ -45,6 +45,7 @@ if 'neon.tech' in app.config['SQLALCHEMY_DATABASE_URI']:
 app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY', 'carbon-footprint-calculator-default-jwt-secret-2025')
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=1)  # Token expires in 1 day
 app.config['JWT_CSRF_IN_COOKIES'] = False  # Disable CSRF for API requests
+app.config['JWT_ALGORITHM'] = 'HS256'  # Add this line
 app.config['JWT_COOKIE_CSRF_PROTECT'] = False  # Disable CSRF protection
 
 # Handle Railway's PostgreSQL URL format
@@ -56,6 +57,28 @@ jwt.init_app(app)
 
 # Placeholder for routes and models
 
+@app.route('/api/test-token', methods=['POST'])
+def test_token():
+    auth_header = request.headers.get('Authorization')
+    print(f"[TEST-TOKEN] Auth header: {auth_header}")
+    
+    if not auth_header:
+        return jsonify({'error': 'No Authorization header'}), 400
+        
+    if not auth_header.startswith('Bearer '):
+        return jsonify({'error': 'Invalid Authorization header format'}), 400
+    
+    token = auth_header.split(' ')[1]
+    print(f"[TEST-TOKEN] Extracted token: {token[:50]}...")
+    
+    try:
+        from flask_jwt_extended import decode_token
+        decoded = decode_token(token)
+        print(f"[TEST-TOKEN] Decoded successfully: {decoded}")
+        return jsonify({'success': True, 'decoded': decoded}), 200
+    except Exception as e:
+        print(f"[TEST-TOKEN] Decode error: {e}")
+        return jsonify({'error': str(e), 'token_preview': token[:50]}), 401
 @app.route('/', methods=['GET'])
 def index():
     return jsonify({
@@ -285,88 +308,23 @@ def submit_data():
 @jwt_required()
 def dashboard():
     try:
-        # Debug the actual request
         auth_header = request.headers.get('Authorization')
-        print(f"[DASHBOARD] Auth header: {auth_header[:50]}..." if auth_header else "[DASHBOARD] No auth header")
-        print(f"[DASHBOARD] Request method: {request.method}")
+        print(f"[DASHBOARD] Full auth header: {auth_header}")
         print(f"[DASHBOARD] Request origin: {request.headers.get('Origin')}")
+        print(f"[DASHBOARD] Content-Type: {request.headers.get('Content-Type')}")
         
+        # This will fail if JWT validation fails
         user_id = get_jwt_identity()
-        print(f"[DASHBOARD] JWT Identity: {user_id}")
+        print(f"[DASHBOARD] JWT Identity extracted: {user_id}")
         
-        # Validate user_id
-        if not user_id:
-            return jsonify({'msg': 'Invalid or missing authentication token'}), 401
-            
-        # Check if user exists
-        user = User.query.get(user_id)
-        if not user:
-            return jsonify({'msg': 'User not found'}), 404
-        
-        # Get the most recent questionnaire data
-        latest_data = QuestionnaireData.query.filter_by(user_id=user_id).order_by(QuestionnaireData.submitted_at.desc()).first()
-        
-        if not latest_data:
-            # Return empty dashboard for new users
-            return jsonify({
-                'msg': 'Welcome! Complete your first carbon footprint assessment to see your dashboard.',
-                'dashboard': {
-                    'greenScore': 0,
-                    'carbonScore': 0, 
-                    'waterScore': 0,
-                    'wasteScore': 0,
-                    'totalCarbon': 0,
-                    'isFirstTime': True
-                },
-                'recentScores': []
-            }), 200
-        
-        # Get all scores to exclude the current one and handle duplicates
-        all_scores = QuestionnaireData.query.filter_by(user_id=user_id).order_by(QuestionnaireData.submitted_at.desc()).all()
-        
-        # Format all scores and remove duplicates
-        formatted_scores = []
-        seen_scores = set()
-        
-        for score in all_scores:
-            score_data = score.data
-            if isinstance(score_data, dict) and 'greenScore' in score_data:
-                score_key = f"{score_data.get('greenScore', 0)}-{score_data.get('carbonScore', 0)}-{score_data.get('waterScore', 0)}-{score_data.get('wasteScore', 0)}"
-                
-                if score_key not in seen_scores:
-                    seen_scores.add(score_key)
-                    formatted_scores.append({
-                        'date': score.submitted_at.isoformat(),
-                        'greenScore': score_data.get('greenScore', 0),
-                        'carbonScore': score_data.get('carbonScore', 0),
-                        'waterScore': score_data.get('waterScore', 0),
-                        'wasteScore': score_data.get('wasteScore', 0),
-                        'totalCarbon': score_data.get('totalCarbon', 0)
-                    })
-        
-        # Exclude the current score (first one) and take up to 3 previous scores
-        formatted_recent_scores = formatted_scores[1:4] if len(formatted_scores) > 1 else []
-        
-        # Return the dashboard data with recent scores
-        dashboard_data = latest_data.data
-        
-        return jsonify({'dashboard': dashboard_data, 'recentScores': formatted_recent_scores})
+        # Rest of your existing dashboard code...
         
     except Exception as e:
-        print(f"Dashboard error: {e}")
-        return jsonify({
-            'msg': 'Error loading dashboard',
-            'error': str(e),
-            'dashboard': {
-                'greenScore': 0,
-                'carbonScore': 0,
-                'waterScore': 0, 
-                'wasteScore': 0,
-                'totalCarbon': 0,
-                'isFirstTime': True
-            },
-            'recentScores': []
-        }), 200
+        print(f"[DASHBOARD] JWT Error: {e}")
+        print(f"[DASHBOARD] Error type: {type(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'msg': 'JWT validation failed', 'error': str(e)}), 401
 
 @app.route('/api/top-users', methods=['GET'])
 @jwt_required()
