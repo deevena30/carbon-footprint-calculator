@@ -4,7 +4,7 @@ import { FaUser, FaEnvelope, FaLock, FaEye, FaEyeSlash } from 'react-icons/fa';
 import { API_BASE_URL } from '../config';
 import './Register.css';
 
-const Register = ({ setIsAuthenticated }) => {  // Add setIsAuthenticated prop
+const Register = () => {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -112,24 +112,9 @@ const Register = ({ setIsAuthenticated }) => {  // Add setIsAuthenticated prop
         setIsLoading(false);
         return;
       }
-      
-      // Check if registration includes auto-login (token in response)
-      if (data.access_token && data.user) {
-        // Auto-login after registration
-        localStorage.setItem('token', data.access_token);
-        localStorage.setItem('user', JSON.stringify(data.user));
-        
-        // Update authentication state directly
-        setIsAuthenticated(true);
-        
-        console.log('✅ Registration successful, auto-login completed');
-        navigate('/dashboard');
-      } else {
-        // Manual login required after registration
-        console.log('✅ Registration successful, redirecting to login');
-        navigate('/login', { state: { fromRegistration: true } });
-      }
-      
+      // Success
+      alert('Account created successfully! Please login with your credentials.');
+      navigate('/login', { state: { fromRegistration: true } });
     } catch (error) {
       console.error('Registration error:', error);
       if (error.name === 'TypeError' && error.message.includes('fetch')) {
@@ -273,4 +258,4 @@ const Register = ({ setIsAuthenticated }) => {  // Add setIsAuthenticated prop
   );
 };
 
-export default Register;
+export default Register; 

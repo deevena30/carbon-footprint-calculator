@@ -39,43 +39,70 @@ function App() {
     };
   }, []);
 
-  // SINGLE SOURCE OF TRUTH for authentication
   useEffect(() => {
     console.log('🔄 App.jsx initial auth check');
-    const checkAuth = () => {
+    // Check if user is authenticated
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    
+    console.log('Initial auth check:', { tokenExists: !!token, userExists: !!user });
+    
+    if (token && user) {
+      console.log('✅ Setting authenticated to true');
+      setIsAuthenticated(true);
+    } else {
+      console.log('❌ Setting authenticated to false');
+      setIsAuthenticated(false);
+    }
+    
+    setIsLoading(false);
+    console.log('Auth loading complete');
+  }, []);
+  
+  // Add periodic auth check to catch any missed updates
+  useEffect(() => {
+    const intervalCheck = setInterval(() => {
       const token = localStorage.getItem('token');
       const user = localStorage.getItem('user');
+      const shouldBeAuthenticated = !!(token && user);
       
-      // More robust validation
-      const tokenValid = token && token.length > 10; // Basic token validation
-      const userValid = user && user !== 'null' && user !== 'undefined';
-      
-      console.log('Auth check:', { 
-        tokenExists: !!token, 
-        userExists: !!user,
-        tokenValid,
-        userValid
-      });
-      
-      return !!(tokenValid && userValid);
-    };
+      if (shouldBeAuthenticated !== isAuthenticated) {
+        console.log('🕰️ Periodic auth check - updating state:', { 
+          was: isAuthenticated, 
+          shouldBe: shouldBeAuthenticated 
+        });
+        setIsAuthenticated(shouldBeAuthenticated);
+      }
+    }, 1000); // Check every second
     
-    const authValid = checkAuth();
-    console.log(authValid ? '✅ Setting authenticated to true' : '❌ Setting authenticated to false');
-    setIsAuthenticated(authValid);
-    setIsLoading(false);
+    return () => clearInterval(intervalCheck);
+  }, [isAuthenticated]);
+
+  // Update authentication state when localStorage changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      console.log('🔄 Storage change detected in App.jsx');
+      const token = localStorage.getItem('token');
+      const user = localStorage.getItem('user');
+      console.log('Auth state check:', { tokenExists: !!token, userExists: !!user });
+      setIsAuthenticated(!!(token && user));
+    };
+
+    // Listen for storage events from other tabs
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also listen for custom storage events from the same tab
+    window.addEventListener('localStorageChanged', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('localStorageChanged', handleStorageChange);
+    };
   }, []);
 
-  // REMOVE the periodic auth check - it's causing the issue
-  // REMOVE the storage change listener - it's causing the issue
-
-  // Protected Route component with better logging
+  // Protected Route component
   const ProtectedRoute = ({ children }) => {
-    console.log('🔒 ProtectedRoute check:', { 
-      path: window.location.pathname,
-      isLoading, 
-      isAuthenticated 
-    });
+    console.log('🔒 ProtectedRoute check:', { isLoading, isAuthenticated });
     
     if (isLoading) {
       console.log('⏳ Still loading authentication state...');
@@ -93,22 +120,14 @@ function App() {
 
   // Public Route component (redirects to dashboard if already authenticated)
   const PublicRoute = ({ children }) => {
-    console.log('🔓 PublicRoute check:', { 
-      path: window.location.pathname,
-      isLoading, 
-      isAuthenticated 
-    });
-    
     if (isLoading) {
       return <div className="loading">Loading...</div>;
     }
     
     if (isAuthenticated) {
-      console.log('✅ Already authenticated, redirecting to dashboard');
       return <Navigate to="/dashboard" replace />;
     }
     
-    console.log('🔓 Rendering public route');
     return children;
   };
 
@@ -121,7 +140,7 @@ function App() {
             path="/login" 
             element={
               <PublicRoute>
-                <Login setIsAuthenticated={setIsAuthenticated} />
+                <Login />
               </PublicRoute>
             } 
           />
@@ -129,7 +148,7 @@ function App() {
             path="/register" 
             element={
               <PublicRoute>
-                <Register setIsAuthenticated={setIsAuthenticated} />
+                <Register />
               </PublicRoute>
             } 
           />
@@ -147,7 +166,7 @@ function App() {
             path="/dashboard" 
             element={
               <ProtectedRoute>
-                <Dashboard setIsAuthenticated={setIsAuthenticated} />
+                <Dashboard />
               </ProtectedRoute>
             } 
           />
