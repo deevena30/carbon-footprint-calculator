@@ -26,7 +26,11 @@ import { API_BASE_URL } from '../config';
 import './Dashboard.css';
 
 const Dashboard = () => {
+  console.log('=== DASHBOARD COMPONENT RENDER START ===');
   console.log('Dashboard component starting to render');
+  console.log('Current URL:', window.location.href);
+  console.log('localStorage token exists:', !!localStorage.getItem('token'));
+  console.log('localStorage user exists:', !!localStorage.getItem('user'));
   
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -38,23 +42,35 @@ const Dashboard = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const initializeDashboard = async () => {
-      try {
-        // Check if user is logged in
-        const token = localStorage.getItem('token');
-        const userData = localStorage.getItem('user');
-        
-        if (!token || !userData) {
-          console.log('No token or user data found, redirecting to login');
-          navigate('/login');
-          return;
-        }
+  const initializeDashboard = async () => {
+    console.log('=== INITIALIZE DASHBOARD START ===');
+    try {
+      // Check if user is logged in
+      const token = localStorage.getItem('token');
+      const userData = localStorage.getItem('user');
+      
+      console.log('Token check result:', {
+        tokenExists: !!token,
+        userDataExists: !!userData,
+        tokenLength: token ? token.length : 0
+      });
+      
+      if (!token || !userData) {
+        console.log('❌ No token or user data found, redirecting to login');
+        console.log('Token:', token ? 'EXISTS' : 'MISSING');
+        console.log('User data:', userData ? 'EXISTS' : 'MISSING');
+        navigate('/login');
+        return;
+      }
 
-        const parsedUser = JSON.parse(userData);
-        console.log('User data parsed:', parsedUser);
-        setUser(parsedUser);
-        
-        await fetchDashboardData();
+      console.log('✅ Both token and user data found, proceeding...');
+      const parsedUser = JSON.parse(userData);
+      console.log('User data parsed:', parsedUser);
+      setUser(parsedUser);
+      
+      console.log('About to call fetchDashboardData...');
+      await fetchDashboardData();
+      console.log('fetchDashboardData completed');
       } catch (error) {
         console.error('Error initializing dashboard:', error);
         setError('Failed to initialize dashboard');
@@ -66,6 +82,7 @@ const Dashboard = () => {
   }, [navigate]);
 
   const fetchDashboardData = async () => {
+    console.log('=== FETCH DASHBOARD DATA START ===');
     setIsLoading(true);
     setError(null);
     try {
