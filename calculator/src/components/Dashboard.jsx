@@ -82,9 +82,6 @@ const Dashboard = () => {
   }, [navigate]);
 
   const fetchDashboardData = async () => {
-    console.log('Response status:', response.status);
-    console.log('Response JSON:', data);
-
     console.log('=== FETCH DASHBOARD DATA START ===');
     setIsLoading(true);
     setError(null);
@@ -147,8 +144,9 @@ const Dashboard = () => {
         credentials: 'include'
       });
       
-      console.log('Response status:', response.status);
+
       const data = await response.json();
+      console.log('Response status:', response.status);
       console.log('Response data:', data);
       
       // Additional logging for debugging 422 errors
